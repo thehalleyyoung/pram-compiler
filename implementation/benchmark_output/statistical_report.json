@@ -1,0 +1,2971 @@
+{
+  "algorithm_results": [
+    {
+      "algorithm": "cole_merge_sort",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "bitonic_sort",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "sample_sort",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            12290.3,
+            12293.1
+          ],
+          "cohens_d": -7362.665471450584,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 12291.7,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.3118054512532935,
+          "t_statistic": -16463.420489754044
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "odd_even_merge_sort",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "shiloach_vishkin",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "boruvka_mst",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_bfs",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "euler_tour",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "vishkin_connectivity",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "ear_decomposition",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "list_ranking",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            4097.0,
+            4098.0
+          ],
+          "cohens_d": -6392.642411397653,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 4097.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.8498365855987975,
+          "t_statistic": -14294.38298773333
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            36015.2,
+            37656.2
+          ],
+          "cohens_d": -37.75504474765107,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 36832.7,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1370.075589966562,
+          "t_statistic": -84.42284654929419
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "prefix_sum",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "compact",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            36015.2,
+            37656.2
+          ],
+          "cohens_d": -37.75504474765107,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 36832.7,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1370.075589966562,
+          "t_statistic": -84.42284654929419
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_addition",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_multiplication",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "matrix_multiply",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            20480.0,
+            20480.0
+          ],
+          "cohens_d": 0.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 20480.0,
+          "name": "cache-oblivious",
+          "p_value": 0.5,
+          "significant": false,
+          "stddev": 0.0,
+          "t_statistic": 0.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "matrix_vector_multiply",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            20480.0,
+            20480.0
+          ],
+          "cohens_d": 0.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 20480.0,
+          "name": "cache-oblivious",
+          "p_value": 0.5,
+          "significant": false,
+          "stddev": 0.0,
+          "t_statistic": 0.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "convex_hull",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "closest_pair",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "tree_contraction",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2051.8,
+            2052.4
+          ],
+          "cohens_d": -4474.7395909590705,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2052.1,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.5676462121975467,
+          "t_statistic": -10005.821906994084
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "lca",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            14338.7,
+            14341.9
+          ],
+          "cohens_d": -7240.99026662857,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 14340.3,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.7507574714370344,
+          "t_statistic": -16191.34646059581
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2051.8,
+            2052.4
+          ],
+          "cohens_d": -4474.7395909590705,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2052.1,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.5676462121975467,
+          "t_statistic": -10005.821906994084
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "string_matching",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "suffix_array",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_selection",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_binary_search",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            4097.0,
+            4098.0
+          ],
+          "cohens_d": -6392.642411397653,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 4097.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.8498365855987975,
+          "t_statistic": -14294.38298773333
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_interpolation_search",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            4097.0,
+            4098.0
+          ],
+          "cohens_d": -6392.642411397653,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 4097.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.8498365855987975,
+          "t_statistic": -14294.38298773333
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "radix_sort",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "aks_sorting_network",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "flashsort",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            18435.5,
+            18439.5
+          ],
+          "cohens_d": -7619.106253520751,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18437.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 3.3747427885527643,
+          "t_statistic": -17036.839510666145
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_dfs",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "graph_coloring",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "maximal_independent_set",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "shortest_path",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "biconnected_components",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            12290.3,
+            12293.1
+          ],
+          "cohens_d": -7362.665471450584,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 12291.7,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.3118054512532935,
+          "t_statistic": -16463.420489754044
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "strongly_connected",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            18435.5,
+            18439.5
+          ],
+          "cohens_d": -7619.106253520751,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18437.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 3.3747427885527643,
+          "t_statistic": -17036.839510666145
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "segmented_scan",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            4097.0,
+            4098.0
+          ],
+          "cohens_d": -6392.642411397653,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 4097.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.8498365855987975,
+          "t_statistic": -14294.38298773333
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "list_split",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            36015.2,
+            37656.2
+          ],
+          "cohens_d": -37.75504474765107,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 36832.7,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1370.075589966562,
+          "t_statistic": -84.42284654929419
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "symmetry_breaking",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            36015.2,
+            37656.2
+          ],
+          "cohens_d": -37.75504474765107,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 36832.7,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1370.075589966562,
+          "t_statistic": -84.42284654929419
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_prefix_multiplication",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "strassen_matrix_multiply",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            20480.0,
+            20480.0
+          ],
+          "cohens_d": 0.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 20480.0,
+          "name": "cache-oblivious",
+          "p_value": 0.5,
+          "significant": false,
+          "stddev": 0.0,
+          "t_statistic": 0.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "fft",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            20480.0,
+            20480.0
+          ],
+          "cohens_d": 0.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 20480.0,
+          "name": "cache-oblivious",
+          "p_value": 0.5,
+          "significant": false,
+          "stddev": 0.0,
+          "t_statistic": 0.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "line_segment_intersection",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            4097.0,
+            4098.0
+          ],
+          "cohens_d": -6392.642411397653,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 4097.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.8498365855987975,
+          "t_statistic": -14294.38298773333
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "voronoi_diagram",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "point_location",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "tree_isomorphism",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            12290.3,
+            12293.1
+          ],
+          "cohens_d": -7362.665471450584,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 12291.7,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.3118054512532935,
+          "t_statistic": -16463.420489754044
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2051.8,
+            2052.4
+          ],
+          "cohens_d": -4474.7395909590705,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2052.1,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.5676462121975467,
+          "t_statistic": -10005.821906994084
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "centroid_decomposition",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2051.8,
+            2052.4
+          ],
+          "cohens_d": -4474.7395909590705,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2052.1,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.5676462121975467,
+          "t_statistic": -10005.821906994084
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "lcp_array",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "string_sorting",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            10242.1,
+            10244.3
+          ],
+          "cohens_d": -7309.881906413694,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 10243.2,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.9321835661585915,
+          "t_statistic": -16345.392850236778
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            7275.4,
+            8148.7
+          ],
+          "cohens_d": -14.207139110711609,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 7738.2,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 744.7965866970361,
+          "t_statistic": -31.76812881734707
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_median",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            8193.6,
+            8195.4
+          ],
+          "cohens_d": -7100.410255752832,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 8194.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.5811388300841898,
+          "t_statistic": -15877.0
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_partition",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            6145.4,
+            6146.8
+          ],
+          "cohens_d": -6957.673830399969,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 6146.1,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 1.1972189997378646,
+          "t_statistic": -15557.831650045671
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            18940.8,
+            18944.0
+          ],
+          "cohens_d": -9448.776232449847,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 18942.4,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 2.796823595120404,
+          "t_statistic": -21128.10595994221
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    },
+    {
+      "algorithm": "parallel_batch_search",
+      "baselines": [
+        {
+          "baseline_bootstrap_ci_95": [
+            4097.0,
+            4098.0
+          ],
+          "cohens_d": -6392.642411397653,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 4097.5,
+          "name": "cilk-serial",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.8498365855987975,
+          "t_statistic": -14294.38298773333
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            77796.7,
+            77815.3
+          ],
+          "cohens_d": -7504.83870967742,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 77806.0,
+          "name": "cache-oblivious",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 14.613540144521982,
+          "t_statistic": -16781.32951501052
+        },
+        {
+          "baseline_bootstrap_ci_95": [
+            2048.7,
+            2049.3
+          ],
+          "cohens_d": -5379.0,
+          "hp_bootstrap_ci_95": [
+            256.0,
+            256.0
+          ],
+          "mean_misses": 2049.0,
+          "name": "hand-optimized",
+          "p_value": 0.001,
+          "significant": true,
+          "stddev": 0.4714045207910317,
+          "t_statistic": -12027.80965097137
+        }
+      ],
+      "hp_mean_misses": 256.0,
+      "hp_stddev": 0.0
+    }
+  ],
+  "input_size": 16384,
+  "summary": {
+    "hp_significantly_better": 47,
+    "hp_wins_vs_cache_oblivious": 51,
+    "hp_wins_vs_cilk_serial": 51,
+    "total_algorithms": 51,
+    "win_rate_vs_co_pct": 100.0
+  },
+  "trials": 10
+}

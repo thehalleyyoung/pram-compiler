@@ -1,0 +1,786 @@
+{
+  "algorithms": [
+    {
+      "algorithm": "cole_merge_sort",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4240.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "bitonic_sort",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2420.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "sample_sort",
+      "block_size": 1024,
+      "cache_misses": 5,
+      "estimated_cycles": 5450.0,
+      "failures": [
+        "irregular_access",
+        "small_input_overhead"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 2.0,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition",
+        "Add small-input fast path that bypasses compilation overhead"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "odd_even_merge_sort",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2520.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "shiloach_vishkin",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3230.0,
+      "failures": [],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "boruvka_mst",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4640.0,
+      "failures": [],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_bfs",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3330.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "euler_tour",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3330.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "vishkin_connectivity",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3630.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "ear_decomposition",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4740.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "list_ranking",
+      "block_size": 1024,
+      "cache_misses": 1,
+      "estimated_cycles": 1910.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "two_universal",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "prefix_sum",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3230.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "murmur",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "compact",
+      "block_size": 512,
+      "cache_misses": 1,
+      "estimated_cycles": 810.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "two_universal",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_addition",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3630.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_multiplication",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4240.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "matrix_multiply",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 3020.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "matrix_vector_multiply",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2220.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "convex_hull",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4340.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "closest_pair",
+      "block_size": 1024,
+      "cache_misses": 6,
+      "estimated_cycles": 6560.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "tree_contraction",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3330.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "lca",
+      "block_size": 1024,
+      "cache_misses": 6,
+      "estimated_cycles": 6260.0,
+      "failures": [
+        "irregular_access",
+        "small_input_overhead"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 2.0,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition",
+        "Add small-input fast path that bypasses compilation overhead"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "string_matching",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2720.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "suffix_array",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3430.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "murmur",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_selection",
+      "block_size": 1024,
+      "cache_misses": 7,
+      "estimated_cycles": 7370.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_binary_search",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4640.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_interpolation_search",
+      "block_size": 1024,
+      "cache_misses": 5,
+      "estimated_cycles": 5650.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "radix_sort",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2820.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "murmur",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "aks_sorting_network",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4540.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "flashsort",
+      "block_size": 1024,
+      "cache_misses": 7,
+      "estimated_cycles": 7570.0,
+      "failures": [
+        "small_input_overhead"
+      ],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Add small-input fast path that bypasses compilation overhead"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_dfs",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3830.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "graph_coloring",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3630.0,
+      "failures": [],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "maximal_independent_set",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4740.0,
+      "failures": [],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "shortest_path",
+      "block_size": 1024,
+      "cache_misses": 3,
+      "estimated_cycles": 3330.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "biconnected_components",
+      "block_size": 1024,
+      "cache_misses": 5,
+      "estimated_cycles": 5350.0,
+      "failures": [
+        "irregular_access",
+        "small_input_overhead"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 2.0,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition",
+        "Add small-input fast path that bypasses compilation overhead"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "strongly_connected",
+      "block_size": 1024,
+      "cache_misses": 6,
+      "estimated_cycles": 6560.0,
+      "failures": [
+        "scheduling_overhead",
+        "small_input_overhead"
+      ],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 2.0,
+      "recommended_fixes": [
+        "Merge adjacent barriers and reduce synchronization granularity",
+        "Add small-input fast path that bypasses compilation overhead"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "segmented_scan",
+      "block_size": 1024,
+      "cache_misses": 1,
+      "estimated_cycles": 1710.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "two_universal",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "list_split",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4240.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "symmetry_breaking",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2920.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_prefix_multiplication",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 3020.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "murmur",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "strassen_matrix_multiply",
+      "block_size": 1024,
+      "cache_misses": 6,
+      "estimated_cycles": 6260.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "fft",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4640.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "line_segment_intersection",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2320.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "voronoi_diagram",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4440.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "point_location",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4140.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "tree_isomorphism",
+      "block_size": 1024,
+      "cache_misses": 5,
+      "estimated_cycles": 5350.0,
+      "failures": [
+        "irregular_access",
+        "small_input_overhead"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 2.0,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition",
+        "Add small-input fast path that bypasses compilation overhead"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "centroid_decomposition",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4940.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "lcp_array",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 3020.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "string_sorting",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2920.0,
+      "failures": [],
+      "fixed": true,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_median",
+      "block_size": 1024,
+      "cache_misses": 4,
+      "estimated_cycles": 4440.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_partition",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2520.0,
+      "failures": [
+        "irregular_access"
+      ],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.5,
+      "recommended_fixes": [
+        "Use Siegel k-wise independent hashing with multi-level partition"
+      ],
+      "tile_size": 2048
+    },
+    {
+      "algorithm": "parallel_batch_search",
+      "block_size": 1024,
+      "cache_misses": 2,
+      "estimated_cycles": 2620.0,
+      "failures": [],
+      "fixed": false,
+      "hash_family": "siegel",
+      "meets_2x_target": true,
+      "performance_ratio": 1.0,
+      "recommended_fixes": [],
+      "tile_size": 2048
+    }
+  ],
+  "cache_hierarchy": {
+    "levels": [
+      {
+        "associativity": 8,
+        "level": 1,
+        "line_size": 128,
+        "size_kb": 64
+      },
+      {
+        "associativity": 8,
+        "level": 2,
+        "line_size": 128,
+        "size_kb": 4096
+      }
+    ]
+  },
+  "summary": {
+    "passing": 51,
+    "success_rate_pct": 100.0,
+    "total": 51
+  }
+}

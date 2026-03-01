@@ -1,0 +1,22 @@
+{
+  "version": 4,
+  "phase": "ideation",
+  "problem_slug": "pram-hash-sim-compiler",
+  "problem_dir": "pipeline_3/pram-hash-sim-compiler",
+  "proposals": {},
+  "active_proposals": [],
+  "abandoned_proposals": [],
+  "best_proposal": null,
+  "monograph_bytes": 0,
+  "code_loc": 0,
+  "history": [
+    {
+      "at": "2026-02-26T18:57:07Z",
+      "event": "problem_crystallized",
+      "slug": "pram-hash-sim-compiler",
+      "dir": "pipeline_3/pram-hash-sim-compiler"
+    }
+  ],
+  "last_error": null,
+  "updated_at": "2026-02-26T19:00:42Z"
+}

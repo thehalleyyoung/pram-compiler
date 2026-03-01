@@ -1,0 +1,11 @@
+pub mod pram_ir;
+pub mod hash_partition;
+pub mod brent_scheduler;
+pub mod staged_specializer;
+pub mod codegen;
+pub mod algorithm_library;
+pub mod benchmark;
+pub mod cli;
+pub mod autotuner;
+pub mod failure_analysis;
+pub mod parallel_codegen;
