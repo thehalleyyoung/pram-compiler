@@ -2,7 +2,7 @@
 
 ## CLI Interface
 
-All commands run via `cargo run --release --` from the `implementation/` directory.
+All commands run via `cargo run --release --` from the project root.
 
 ### `compile`
 Compile a PRAM algorithm to C code.
