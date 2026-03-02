@@ -1,0 +1,151 @@
+{
+  "points": [
+    {
+      "algorithm": "hash_partition",
+      "input_size": 1024,
+      "method": "siegel_k8",
+      "wall_time_ns": 812250,
+      "wall_time_per_element_ns": 793.212890625,
+      "cache_misses_simulated": 16,
+      "cache_miss_rate": 0.015625,
+      "throughput_mops": 1.260695598645737
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 1024,
+      "method": "sequential",
+      "wall_time_ns": 6000,
+      "wall_time_per_element_ns": 5.859375,
+      "cache_misses_simulated": 128,
+      "cache_miss_rate": 0.125,
+      "throughput_mops": 170.66666666666666
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 4096,
+      "method": "siegel_k8",
+      "wall_time_ns": 2944833,
+      "wall_time_per_element_ns": 718.953369140625,
+      "cache_misses_simulated": 64,
+      "cache_miss_rate": 0.015625,
+      "throughput_mops": 1.3909107918853123
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 4096,
+      "method": "sequential",
+      "wall_time_ns": 29667,
+      "wall_time_per_element_ns": 7.242919921875,
+      "cache_misses_simulated": 512,
+      "cache_miss_rate": 0.125,
+      "throughput_mops": 138.06586442848956
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 16384,
+      "method": "siegel_k8",
+      "wall_time_ns": 11261584,
+      "wall_time_per_element_ns": 687.3525390625,
+      "cache_misses_simulated": 256,
+      "cache_miss_rate": 0.015625,
+      "throughput_mops": 1.454857504947794
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 16384,
+      "method": "sequential",
+      "wall_time_ns": 95417,
+      "wall_time_per_element_ns": 5.82379150390625,
+      "cache_misses_simulated": 2048,
+      "cache_miss_rate": 0.125,
+      "throughput_mops": 171.70944380980328
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 65536,
+      "method": "siegel_k8",
+      "wall_time_ns": 87304167,
+      "wall_time_per_element_ns": 1332.1558685302734,
+      "cache_misses_simulated": 32965,
+      "cache_miss_rate": 0.5030059814453125,
+      "throughput_mops": 0.7506629093660557
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 65536,
+      "method": "sequential",
+      "wall_time_ns": 380625,
+      "wall_time_per_element_ns": 5.8078765869140625,
+      "cache_misses_simulated": 8192,
+      "cache_miss_rate": 0.125,
+      "throughput_mops": 172.1799671592775
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 262144,
+      "method": "siegel_k8",
+      "wall_time_ns": 181164625,
+      "wall_time_per_element_ns": 691.0881996154785,
+      "cache_misses_simulated": 229237,
+      "cache_miss_rate": 0.8744697570800781,
+      "throughput_mops": 1.4469933078822645
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 262144,
+      "method": "sequential",
+      "wall_time_ns": 1632208,
+      "wall_time_per_element_ns": 6.22637939453125,
+      "cache_misses_simulated": 32768,
+      "cache_miss_rate": 0.125,
+      "throughput_mops": 160.60698146314687
+    }
+  ],
+  "comparisons": [
+    {
+      "algorithm": "sorting",
+      "input_size": 262144,
+      "hp_time_ns": 315974500,
+      "baseline_time_ns": 176137459,
+      "baseline_name": "introsort (hand-optimized)",
+      "speedup": 0.5574420056048827,
+      "hp_wins": false
+    },
+    {
+      "algorithm": "prefix_sum",
+      "input_size": 262144,
+      "hp_time_ns": 187403709,
+      "baseline_time_ns": 1799584,
+      "baseline_name": "sequential prefix sum",
+      "speedup": 0.009602712825710402,
+      "hp_wins": false
+    },
+    {
+      "algorithm": "connected_components",
+      "input_size": 262144,
+      "hp_time_ns": 727095416,
+      "baseline_time_ns": 70267541,
+      "baseline_name": "union-find (path compression + rank)",
+      "speedup": 0.09664143034564256,
+      "hp_wins": false
+    },
+    {
+      "algorithm": "fft",
+      "input_size": 65536,
+      "hp_time_ns": 734669584,
+      "baseline_time_ns": 21748667,
+      "baseline_name": "cooley-tukey iterative FFT",
+      "speedup": 0.029603331175882736,
+      "hp_wins": false
+    }
+  ],
+  "max_size_tested": 262144,
+  "total_algorithms": 4,
+  "avg_throughput_mops": 1.2608240225454328,
+  "scaling_exponents": [
+    [
+      "hash_partition",
+      1.0246058115971552
+    ]
+  ]
+}

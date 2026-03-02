@@ -1,94 +1,92 @@
 # PRAM Hash-Partition Compiler
 
-Compile any PRAM algorithm to cache-efficient C. **51/51 algorithms, 100% success, 0.49 avg cache ratio.**
+Compile PRAM algorithms to cache-efficient sequential C. Supports EREW, CREW, and CRCW memory models.
 
-## Quickstart
+## 30-Second Quickstart
 
 ```bash
 cargo build --release
 
-# Compile a PRAM algorithm to cache-efficient C:
-cargo run --release -- compile --algorithm cole_merge_sort --output sort.c
+# Compile bitonic sort to cache-efficient C:
+cargo run --release -- compile --algorithm bitonic_sort --output sort.c
 
-# Compile to parallel OpenMP C:
-cargo run --release -- compile --algorithm shiloach_vishkin --target parallel --output cc.c
+# Run scalability benchmark (n up to 262,144):
+cargo run --release -- scalability-benchmark --sizes 1024,16384,262144
 
-# Verify all 51 algorithms meet cache-miss bounds:
-cargo run --release -- verify -a all --sizes 1024,4096
+# Verify cache-miss bounds on all 51 algorithms:
+cargo run --release -- verify -a all --sizes 1024,4096,16384
 
-# Full statistical comparison vs baselines:
-cargo run --release -- statistical-compare --size 16384 --trials 10
+# Analyze theory-practice gap in hash load distributions:
+cargo run --release -- gap-analysis --sizes 1000,10000,100000
 ```
 
-## Results
+## What It Does
+
+Takes a PRAM algorithm specification and produces cache-efficient sequential C code through three stages:
+
+```
+PRAM IR  →  Hash-Partition Analysis  →  Brent Scheduling  →  C99/OpenMP Code
+             (Siegel k-wise hashing,    (locality ordering,   (sequential or
+              adaptive partitioning)      CRCW resolution)     parallel output)
+```
+
+**Hash-Partition Locality Theorem**: Siegel k-wise independent hashing maps PRAM addresses to cache-line-aligned blocks, yielding Q ≤ c₃(pT/B + T) cache misses with c₃ ≤ 4.
+
+## Key Results
 
 | Metric | Value |
 |--------|-------|
-| Success rate | **51/51 (100%)** — 7 fixed by automated IR repair |
-| Avg cache bound ratio | **0.49** (half theoretical worst case) |
+| Algorithms compiled | **51/51 (100%)** — 7 fixed by automated IR repair |
+| Avg cache bound ratio | **0.49** (well within 2× theoretical bound) |
 | Avg L1 miss rate | **0.77%** |
-| Baseline win rate | **100.0%** (204/204 vs cache-oblivious + hand-optimized) |
-| Statistical significance | **47/51** (p<0.05, Welch's t-test) |
-| Tests passing | **1,476** |
+| Max input size tested | **262,144** |
+| Tests passing | **1,497** |
+| Property-test trials | **2,700+** across 6 properties |
 
-## How It Works
-
-```
-PRAM IR  →  Hash-Partition Analysis  →  Brent Scheduling  →  Code Generation
-             (5 hash families,          (locality ordering,    (C99, OpenMP,
-              adaptive partitioning)     CRCW resolution)       adaptive)
-```
-
-**Hash-Partition Locality Theorem**: Siegel k-wise independent hashing partitions PRAM addresses into cache-line blocks, yielding Q ≤ c₃(pT/B + T) cache misses with c₃ ≤ 4. Uses the SSS bounded-independence concentration inequality. With adaptive k = Ω(log n / log log n), overflow is O(log n / log log n) w.h.p.; with default k=8, worst-case is O(n^{1/4}) but empirically < 10.
+**Honest comparison**: The compiler produces code that is cache-efficient relative to theoretical bounds, but hand-optimized baselines (introsort, Union-Find, Cooley-Tukey FFT) are significantly faster on wall-clock time. The value is *automated compilation from high-level PRAM specs* with provable cache-miss guarantees, not beating hand-tuned code.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `compile --algorithm NAME [--target T]` | Compile to C (sequential/parallel/adaptive) |
-| `verify -a all --sizes SIZES` | Verify work and cache bounds |
-| `statistical-compare --size N --trials T` | Statistical comparison vs baselines |
-| `compare --sizes SIZES` | Compare vs Cilk serial and cache-oblivious |
-| `autotune` | Select best hash family per algorithm |
-| `analyze-failures` | Diagnose and auto-repair failing algorithms |
-| `run-experiments --sizes SIZES` | Full evaluation on all 51 algorithms |
-| `list-algorithms [--verbose]` | Show all 51 algorithms |
-| `hardware-benchmark --sizes SIZES` | Generate hardware counter CSV data |
-
-## Verification
-
-Six layers: (1) formal operational semantics with CRCW conflict resolution, (2) property-based testing (200+ trials, 100%), (3) translation validation (structural + semantic equivalence), (4) compositional pass verification across all memory models, (5) adversarial-input validation (10 patterns × 3 hash families), (6) semantic preservation with validation witnesses (bisimulation/refinement/commutativity on 100 random inputs per transform).
+| `compile --algorithm NAME` | Compile PRAM algorithm to C |
+| `scalability-benchmark` | Benchmark at realistic sizes (up to 10⁶) |
+| `gap-analysis` | Analyze theory-practice gap in hash loads |
+| `verify -a all` | Verify work and cache bounds |
+| `statistical-compare` | Welch's t-test comparison vs baselines |
+| `compare --sizes SIZES` | Compare vs cache-oblivious baselines |
+| `autotune` | Select optimal hash family per algorithm |
+| `hardware-benchmark` | Generate hardware counter CSV data |
+| `list-algorithms` | Show all 51 algorithms |
 
 ## Project Structure
 
 ```
-├── Cargo.toml              # Rust project manifest
-├── src/                    # Compiler source code
-│   ├── pram_ir/            # PRAM intermediate representation (AST, operational semantics, types)
-│   ├── hash_partition/     # Hash families (Siegel, 2-universal, tabulation, Murmur, identity)
-│   ├── brent_scheduler/    # Work-optimal scheduling with locality ordering and CRCW resolution
-│   ├── staged_specializer/ # Partial evaluation, work preservation, translation validation
-│   ├── codegen/            # C code generation (sequential, OpenMP, adaptive)
-│   ├── algorithm_library/  # 51 PRAM algorithms across 10 families
-│   ├── benchmark/          # Cache simulation, baseline comparison, statistics
-│   ├── autotuner/          # Cache hierarchy detection, parameter optimization, PGO
-│   ├── failure_analysis/   # Failure diagnosis, automated repair, semantic preservation
-│   └── parallel_codegen/   # OpenMP emission, work-stealing, NUMA
-├── examples/               # Demo programs
-├── docs/                   # Detailed API reference, problem statement, reviews
-├── paper/                  # Research paper (LaTeX source and PDF)
-├── data/                   # Benchmark data and experiment metadata
-└── output/                 # Compiled C output and benchmark results
+src/
+├── pram_ir/            # IR: AST, operational semantics, type system
+├── hash_partition/     # 5 hash families (Siegel, 2-universal, tabulation, Murmur, identity)
+├── brent_scheduler/    # Work-optimal scheduling, CRCW conflict resolution
+├── staged_specializer/ # Partial evaluation, work preservation verification
+├── codegen/            # C99 and OpenMP code generation
+├── algorithm_library/  # 51 PRAM algorithms across 10 families
+├── benchmark/          # Cache simulation, scalability, load distribution analysis
+├── autotuner/          # Cache probing, parameter optimization
+├── failure_analysis/   # Automated diagnosis and repair
+└── parallel_codegen/   # OpenMP emission, work-stealing
 ```
-
-## Implementation
-
-~60K lines of Rust, 1,476 tests, stable Rust 2021 edition. Supports EREW, CREW, CRCW (Priority/Arbitrary/Common). 5 hash families (Siegel, tabulation, 2-universal, Murmur, identity). 8-way set-associative LRU cache model matching Intel L1d.
-
-See [`docs/api-reference.md`](docs/api-reference.md) for the full public API reference.
 
 ## Limitations
 
-- SSS bound with fixed k=8 is conservative (>10× gap vs empirical); adaptive k module computes tighter k when needed
-- Work-Preservation Lemma is a paper proof with exhaustive property testing (not mechanized in Lean/Coq)
-- Specializer confluence checked empirically across all pass orderings; formal critical-pair analysis is future work
+- **Compilation overhead**: Hash partition compilation adds overhead vs hand-optimized baselines. The compiler targets *correctness* and *cache-efficiency guarantees*, not minimal wall-clock time.
+- **SSS bound gap**: The k=8 SSS concentration bound overshoots empirical overflow by ~2× on average for structured PRAM access patterns. An adaptive k module computes tighter bounds when needed.
+- **Work-Preservation**: Empirically validated via 2,700+ property-based tests across 6 properties; not mechanized in a proof assistant.
+- **Cache simulation**: Benchmarks use software cache simulation (LRU, 8-way set-associative), not hardware performance counters.
+
+## Building
+
+Requires Rust 2021 edition (stable). No external dependencies beyond Cargo.
+
+```bash
+cargo build --release
+cargo test   # 1,497 tests
+```

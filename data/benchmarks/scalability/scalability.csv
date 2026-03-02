@@ -1,0 +1,11 @@
+algorithm,input_size,method,wall_time_ns,time_per_elem_ns,cache_misses,miss_rate,throughput_mops
+hash_partition,1024,siegel_k8,812250,793.21,16,0.0156,1.26
+sequential_scan,1024,sequential,6000,5.86,128,0.1250,170.67
+hash_partition,4096,siegel_k8,2944833,718.95,64,0.0156,1.39
+sequential_scan,4096,sequential,29667,7.24,512,0.1250,138.07
+hash_partition,16384,siegel_k8,11261584,687.35,256,0.0156,1.45
+sequential_scan,16384,sequential,95417,5.82,2048,0.1250,171.71
+hash_partition,65536,siegel_k8,87304167,1332.16,32965,0.5030,0.75
+sequential_scan,65536,sequential,380625,5.81,8192,0.1250,172.18
+hash_partition,262144,siegel_k8,181164625,691.09,229237,0.8745,1.45
+sequential_scan,262144,sequential,1632208,6.23,32768,0.1250,160.61

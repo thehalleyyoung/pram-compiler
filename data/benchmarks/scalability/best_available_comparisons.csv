@@ -1,0 +1,5 @@
+algorithm,input_size,hp_time_ns,baseline_time_ns,baseline_name,speedup,hp_wins
+sorting,262144,315974500,176137459,introsort (hand-optimized),0.5574,false
+prefix_sum,262144,187403709,1799584,sequential prefix sum,0.0096,false
+connected_components,262144,727095416,70267541,union-find (path compression + rank),0.0966,false
+fft,65536,734669584,21748667,cooley-tukey iterative FFT,0.0296,false

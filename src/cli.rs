@@ -158,6 +158,36 @@ pub enum Commands {
         #[arg(long, default_value = "256,1024,4096,16384,65536")]
         sizes: String,
     },
+
+    /// Run scalability evaluation at realistic input sizes (up to 10^6)
+    ScalabilityBenchmark {
+        /// Output directory for results
+        #[arg(short, long, default_value = "scalability_output")]
+        output_dir: String,
+
+        /// Input sizes (comma-separated)
+        #[arg(long, default_value = "1024,4096,16384,65536,262144")]
+        sizes: String,
+
+        /// Number of trials per comparison
+        #[arg(long, default_value = "5")]
+        trials: usize,
+    },
+
+    /// Analyze theory-practice gap in hash load distribution
+    GapAnalysis {
+        /// Output directory for results
+        #[arg(short, long, default_value = "gap_analysis_output")]
+        output_dir: String,
+
+        /// Input sizes (comma-separated)
+        #[arg(long, default_value = "1000,10000,100000")]
+        sizes: String,
+
+        /// Independence parameter k
+        #[arg(long, default_value = "8")]
+        k: usize,
+    },
 }
 
 /// Look up an algorithm by name from the built-in library.
@@ -901,6 +931,110 @@ pub fn execute_hardware_benchmark(output_dir: &str, sizes_str: &str) -> Result<(
     Ok(())
 }
 
+/// Execute the scalability benchmark at realistic input sizes.
+pub fn execute_scalability_benchmark(output_dir: &str, sizes_str: &str, trials: usize) -> Result<(), String> {
+    use crate::benchmark::scalability::{run_scalability_evaluation, scalability_to_csv, comparisons_to_csv};
+
+    std::fs::create_dir_all(output_dir)
+        .map_err(|e| format!("Failed to create {}: {}", output_dir, e))?;
+
+    let sizes: Vec<usize> = sizes_str
+        .split(',')
+        .map(|s| s.trim().parse().map_err(|e| format!("Invalid size: {}", e)))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    println!("Scalability evaluation: sizes {:?}, {} trials", sizes, trials);
+    println!("{:-<70}", "");
+
+    let summary = run_scalability_evaluation(&sizes, trials);
+
+    // Write scalability CSV
+    let csv = scalability_to_csv(&summary);
+    let csv_path = format!("{}/scalability.csv", output_dir);
+    std::fs::write(&csv_path, &csv)
+        .map_err(|e| format!("Failed to write {}: {}", csv_path, e))?;
+
+    // Write comparisons CSV
+    let comp_csv = comparisons_to_csv(&summary.comparisons);
+    let comp_path = format!("{}/best_available_comparisons.csv", output_dir);
+    std::fs::write(&comp_path, &comp_csv)
+        .map_err(|e| format!("Failed to write {}: {}", comp_path, e))?;
+
+    // Write JSON summary
+    let json = serde_json::to_string_pretty(&summary)
+        .map_err(|e| format!("Serialization error: {}", e))?;
+    let json_path = format!("{}/scalability_summary.json", output_dir);
+    std::fs::write(&json_path, &json)
+        .map_err(|e| format!("Failed to write {}: {}", json_path, e))?;
+
+    // Print summary
+    println!("Max size tested: {}", summary.max_size_tested);
+    println!("Avg throughput: {:.2} Mops/sec", summary.avg_throughput_mops);
+    for (alg, exp) in &summary.scaling_exponents {
+        println!("Scaling exponent ({}): {:.2}", alg, exp);
+    }
+    println!("\nBest-available comparisons:");
+    println!("{:<25} {:>10} {:>10} {:>10} {:>8} {:>5}",
+             "Algorithm", "HP (ns)", "Baseline", "Name", "Speedup", "Win?");
+    for c in &summary.comparisons {
+        println!("{:<25} {:>10} {:>10} {:>10} {:>8.2} {:>5}",
+                 c.algorithm, c.hp_time_ns, c.baseline_time_ns,
+                 &c.baseline_name[..c.baseline_name.len().min(10)],
+                 c.speedup,
+                 if c.hp_wins { "YES" } else { "no" });
+    }
+
+    println!("{:-<70}", "");
+    println!("CSV saved to {}", csv_path);
+    println!("Comparisons saved to {}", comp_path);
+    println!("Summary saved to {}", json_path);
+
+    Ok(())
+}
+
+/// Execute the theory-practice gap analysis.
+pub fn execute_gap_analysis(output_dir: &str, sizes_str: &str, k: usize) -> Result<(), String> {
+    use crate::benchmark::load_distribution::{analyze_theory_practice_gap, gap_analysis_to_csv};
+
+    std::fs::create_dir_all(output_dir)
+        .map_err(|e| format!("Failed to create {}: {}", output_dir, e))?;
+
+    let sizes: Vec<usize> = sizes_str
+        .split(',')
+        .map(|s| s.trim().parse().map_err(|e| format!("Invalid size: {}", e)))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    println!("Theory-practice gap analysis: sizes {:?}, k={}", sizes, k);
+    println!("{:-<70}", "");
+
+    let report = analyze_theory_practice_gap(&sizes, k);
+
+    // Write CSV
+    let csv = gap_analysis_to_csv(&report);
+    let csv_path = format!("{}/gap_analysis.csv", output_dir);
+    std::fs::write(&csv_path, &csv)
+        .map_err(|e| format!("Failed to write {}: {}", csv_path, e))?;
+
+    // Write JSON
+    let json = serde_json::to_string_pretty(&report)
+        .map_err(|e| format!("Serialization error: {}", e))?;
+    let json_path = format!("{}/gap_analysis.json", output_dir);
+    std::fs::write(&json_path, &json)
+        .map_err(|e| format!("Failed to write {}: {}", json_path, e))?;
+
+    println!("Avg gap ratio (sequential): {:.2}x", report.avg_gap_sequential);
+    println!("Avg gap ratio (block-structured): {:.2}x", report.avg_gap_block_structured);
+    println!("Avg gap ratio (random): {:.2}x", report.avg_gap_random);
+    println!("Structural regularity factor: {:.2}", report.structural_regularity_factor);
+    println!("\n{}", report.gap_explanation);
+
+    println!("{:-<70}", "");
+    println!("CSV saved to {}", csv_path);
+    println!("JSON saved to {}", json_path);
+
+    Ok(())
+}
+
 /// Execute the statistical comparison command with Welch's t-test and effect sizes.
 pub fn execute_statistical_compare(size: usize, trials: usize, output: &str) -> Result<(), String> {
     use crate::benchmark::baseline_comparison::statistical_comparison;
@@ -1031,6 +1165,8 @@ pub fn run(cli: Cli) -> Result<(), String> {
         Commands::Compare { algorithm, sizes, output } => execute_compare(&algorithm, &sizes, &output),
         Commands::StatisticalCompare { size, trials, output } => execute_statistical_compare(size, trials, &output),
         Commands::HardwareBenchmark { output_dir, sizes } => execute_hardware_benchmark(&output_dir, &sizes),
+        Commands::ScalabilityBenchmark { output_dir, sizes, trials } => execute_scalability_benchmark(&output_dir, &sizes, trials),
+        Commands::GapAnalysis { output_dir, sizes, k } => execute_gap_analysis(&output_dir, &sizes, k),
     }
 }
 

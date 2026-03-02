@@ -269,6 +269,37 @@ let tb = tail_bounds_with_independence(8.0, 8.0, 20.0, Some(8), 10000, 1250);
 ```rust
 use pram_compiler::staged_specializer::property_tests::run_all_property_tests;
 
-let results = run_all_property_tests();
+let results = run_all_property_tests(); // 2,700+ trials across 6 properties
 for r in &results { assert!(r.all_passed()); }
+```
+
+### Scalability Benchmarks
+
+```rust
+use pram_compiler::benchmark::scalability::{
+    run_scalability_evaluation, benchmark_sort_comparison, scalability_to_csv,
+};
+
+let summary = run_scalability_evaluation(&[1024, 16384, 262144], 5);
+let csv = scalability_to_csv(&summary);
+
+// Compare hash-partition vs best-available baselines
+let sort_cmp = benchmark_sort_comparison(65536, 5);
+println!("Speedup vs introsort: {:.2}x", sort_cmp.speedup);
+```
+
+### Theory-Practice Gap Analysis
+
+```rust
+use pram_compiler::benchmark::load_distribution::{
+    analyze_theory_practice_gap, analyze_load_distribution, AccessPatternType,
+};
+
+let report = analyze_theory_practice_gap(&[1000, 10000, 100000], 8);
+println!("Gap explanation: {}", report.gap_explanation);
+println!("Structural regularity factor: {:.2}", report.structural_regularity_factor);
+
+// Per-pattern analysis
+let result = analyze_load_distribution(AccessPatternType::Sequential, 10000, 1250, 8);
+println!("SSS bound: {:.1}, Empirical max: {}", result.sss_theoretical_bound, result.empirical_max_load);
 ```

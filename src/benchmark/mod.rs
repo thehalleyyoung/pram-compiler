@@ -8,3 +8,5 @@ pub mod reporter;
 pub mod statistics;
 pub mod hardware_counters;
 pub mod adversarial;
+pub mod scalability;
+pub mod load_distribution;

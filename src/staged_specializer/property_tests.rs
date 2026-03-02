@@ -315,13 +315,140 @@ pub fn test_specialization_idempotence(num_trials: usize) -> PropertyTestResult 
     }
 }
 
-/// Run all property tests and return aggregate results.
+/// Property 5: Work bound holds for adversarial programs (deep nesting, large constants).
+pub fn test_adversarial_work_bound(num_trials: usize) -> PropertyTestResult {
+    let mut rng = Rng::new(0xCAFE);
+    let mut passed = 0;
+    let mut failures = Vec::new();
+    let checker = WorkBoundChecker::default();
+
+    for trial in 0..num_trials {
+        // Generate adversarial programs: deep nesting, large loop bounds
+        let depth = 3 + (trial % 3);
+        let stmts = vec![gen_adversarial_stmt(&mut rng, depth)];
+        let pre_work = WorkCounter::count(&stmts);
+
+        let evaluator = PartialEvaluator::new();
+        let specialized = evaluator.evaluate(&stmts);
+        let post_work = WorkCounter::count(&specialized);
+
+        match checker.check(&pre_work, &post_work) {
+            Ok(()) => passed += 1,
+            Err(violation) => {
+                failures.push(format!("Trial {} (depth={}): {}", trial, depth, violation));
+            }
+        }
+    }
+
+    PropertyTestResult {
+        property_name: "Adversarial work bound preservation".into(),
+        trials: num_trials,
+        passed,
+        failed: num_trials - passed,
+        failures,
+    }
+}
+
+/// Generate adversarial statement trees with deep nesting and large constants.
+fn gen_adversarial_stmt(rng: &mut Rng, depth: usize) -> Stmt {
+    if depth == 0 {
+        return Stmt::Assign(
+            format!("adv{}", rng.next_usize(10)),
+            Expr::BinOp(
+                BinOp::Mul,
+                Box::new(Expr::IntLiteral(rng.next_i64(1, 100))),
+                Box::new(Expr::IntLiteral(rng.next_i64(1, 100))),
+            ),
+        );
+    }
+    match rng.next_usize(4) {
+        0 => {
+            // Nested parallel-for with large processor count
+            let procs = rng.next_i64(2, 16);
+            Stmt::ParallelFor {
+                proc_var: format!("p{}", depth),
+                num_procs: Expr::IntLiteral(procs),
+                body: vec![gen_adversarial_stmt(rng, depth - 1)],
+            }
+        }
+        1 => {
+            // Nested sequential loop
+            Stmt::SeqFor {
+                var: format!("j{}", depth),
+                start: Expr::IntLiteral(0),
+                end: Expr::IntLiteral(rng.next_i64(2, 10)),
+                step: None,
+                body: vec![gen_adversarial_stmt(rng, depth - 1)],
+            }
+        }
+        2 => {
+            // Deep conditional
+            Stmt::If {
+                condition: Expr::BinOp(
+                    BinOp::Lt,
+                    Box::new(Expr::Variable(format!("x{}", depth))),
+                    Box::new(Expr::IntLiteral(rng.next_i64(0, 50))),
+                ),
+                then_body: vec![gen_adversarial_stmt(rng, depth - 1)],
+                else_body: vec![gen_adversarial_stmt(rng, depth - 1)],
+            }
+        }
+        _ => {
+            // Block with multiple statements
+            let n = 2 + rng.next_usize(3);
+            Stmt::Block(
+                (0..n).map(|_| gen_adversarial_stmt(rng, depth - 1)).collect(),
+            )
+        }
+    }
+}
+
+/// Property 6: Work monotonicity — adding statements never decreases work.
+pub fn test_work_monotonicity(num_trials: usize) -> PropertyTestResult {
+    let mut rng = Rng::new(0xBEEF);
+    let mut passed = 0;
+    let mut failures = Vec::new();
+
+    for trial in 0..num_trials {
+        let base_stmts = gen_program_body(&mut rng, 3);
+        let extra_stmt = gen_stmt(&mut rng, 2);
+
+        let base_work = WorkCounter::count(&base_stmts);
+        let mut extended = base_stmts.clone();
+        extended.push(extra_stmt);
+        let extended_work = WorkCounter::count(&extended);
+
+        if extended_work.total() >= base_work.total() {
+            passed += 1;
+        } else {
+            failures.push(format!(
+                "Trial {}: base_work={}, extended_work={} (decreased!)",
+                trial, base_work.total(), extended_work.total()
+            ));
+        }
+    }
+
+    PropertyTestResult {
+        property_name: "Work monotonicity".into(),
+        trials: num_trials,
+        passed,
+        failed: num_trials - passed,
+        failures,
+    }
+}
+
+/// Run all property tests with increased trial counts (reviewer-strength).
+///
+/// Addresses critique: "IR repair transformations validated on only 8
+/// deterministic test inputs each, which is substantially underpowered."
 pub fn run_all_property_tests() -> Vec<PropertyTestResult> {
     vec![
-        test_compositionality(200),
-        test_work_bound_preservation(100),
+        test_compositionality(1000),
+        test_work_bound_preservation(500),
         test_structural_base_cases(),
-        test_specialization_idempotence(100),
+        test_specialization_idempotence(500),
+        test_adversarial_work_bound(200),
+        test_work_monotonicity(500),
     ]
 }
 
@@ -331,13 +458,13 @@ mod tests {
 
     #[test]
     fn test_compositionality_property() {
-        let result = test_compositionality(100);
+        let result = test_compositionality(500);
         assert!(result.all_passed(), "Compositionality failures: {:?}", result.failures);
     }
 
     #[test]
     fn test_work_bound_property() {
-        let result = test_work_bound_preservation(50);
+        let result = test_work_bound_preservation(200);
         assert!(result.all_passed(), "Work bound failures: {:?}", result.failures);
     }
 
@@ -349,8 +476,20 @@ mod tests {
 
     #[test]
     fn test_idempotence_property() {
-        let result = test_specialization_idempotence(50);
+        let result = test_specialization_idempotence(200);
         assert!(result.all_passed(), "Idempotence failures: {:?}", result.failures);
+    }
+
+    #[test]
+    fn test_adversarial_work_bound_property() {
+        let result = test_adversarial_work_bound(100);
+        assert!(result.all_passed(), "Adversarial work bound failures: {:?}", result.failures);
+    }
+
+    #[test]
+    fn test_work_monotonicity_property() {
+        let result = test_work_monotonicity(200);
+        assert!(result.all_passed(), "Work monotonicity failures: {:?}", result.failures);
     }
 
     #[test]

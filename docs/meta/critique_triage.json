@@ -1,0 +1,5 @@
+{
+  "category": "B",
+  "key_quote": "The paper's baselines are straw men...Compiling PRAM algorithms to sequential code was an interesting research direction in the 1990s; in 2026, the motivation needs to be much stronger.",
+  "rationale": "Core Hash-Partition Locality Theorem is genuinely novel, but claims exceed evidence on all three axes (formal, practical, probabilistic): no mechanized proofs, straw-man baselines, simulated caches at tiny input sizes, and a >10x unexplained theory-practice gap render the current execution insufficient for the ambition."
+}
