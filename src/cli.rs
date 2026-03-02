@@ -188,8 +188,37 @@ pub enum Commands {
         #[arg(long, default_value = "8")]
         k: usize,
     },
-}
 
+    /// Compare against real parallel library baselines (rayon)
+    RayonBaseline {
+        /// Output directory for results
+        #[arg(short, long, default_value = "rayon_baseline_output")]
+        output_dir: String,
+
+        /// Input sizes (comma-separated)
+        #[arg(long, default_value = "1024,4096,16384,65536,262144")]
+        sizes: String,
+
+        /// Number of trials per comparison
+        #[arg(long, default_value = "5")]
+        trials: usize,
+    },
+
+    /// Run large-scale evaluation at realistic sizes (up to 4M+)
+    LargeScaleEval {
+        /// Output directory for results
+        #[arg(short, long, default_value = "large_scale_output")]
+        output_dir: String,
+
+        /// Input sizes (comma-separated)
+        #[arg(long, default_value = "1024,4096,16384,65536,262144,1048576")]
+        sizes: String,
+
+        /// Number of trials per comparison
+        #[arg(long, default_value = "3")]
+        trials: usize,
+    },
+}
 /// Look up an algorithm by name from the built-in library.
 pub fn get_algorithm(name: &str) -> Option<PramProgram> {
     // Use the catalog for dynamic lookup
@@ -1136,6 +1165,126 @@ pub fn execute_statistical_compare(size: usize, trials: usize, output: &str) -> 
     Ok(())
 }
 
+/// Execute the rayon baseline comparison command.
+pub fn execute_rayon_baseline(output_dir: &str, sizes_str: &str, trials: usize) -> Result<(), String> {
+    use crate::benchmark::rayon_baselines::{run_rayon_baseline_evaluation, rayon_baselines_to_csv};
+
+    std::fs::create_dir_all(output_dir)
+        .map_err(|e| format!("Failed to create {}: {}", output_dir, e))?;
+
+    let sizes: Vec<usize> = sizes_str
+        .split(',')
+        .map(|s| s.trim().parse().map_err(|e| format!("Invalid size: {}", e)))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    println!("Rayon baseline evaluation: sizes {:?}, {} trials", sizes, trials);
+    println!("Rayon thread pool: {} threads", rayon::current_num_threads());
+    println!("{:-<90}", "");
+
+    let summary = run_rayon_baseline_evaluation(&sizes, trials);
+
+    // Print results
+    println!("{:<25} {:>10} {:>12} {:>12} {:>10} {:>8}",
+             "Algorithm", "Size", "HP (ns)", "Rayon (ns)", "Ratio", "Speedup");
+    println!("{:-<90}", "");
+    for r in &summary.results {
+        println!("{:<25} {:>10} {:>12} {:>12} {:>10.2} {:>8.2}",
+                 r.algorithm, r.input_size, r.hp_time_ns, r.rayon_time_ns,
+                 r.hp_to_rayon_ratio, r.rayon_speedup_vs_sequential);
+    }
+    println!("{:-<90}", "");
+    println!("Average HP/Rayon ratio: {:.2}x", summary.avg_hp_to_rayon_ratio);
+    println!("Geometric mean ratio: {:.2}x", summary.geometric_mean_ratio);
+
+    // Save CSV
+    let csv = rayon_baselines_to_csv(&summary);
+    let csv_path = format!("{}/rayon_baselines.csv", output_dir);
+    std::fs::write(&csv_path, &csv)
+        .map_err(|e| format!("Failed to write {}: {}", csv_path, e))?;
+
+    // Save JSON
+    let json = serde_json::to_string_pretty(&summary)
+        .map_err(|e| format!("Serialization error: {}", e))?;
+    let json_path = format!("{}/rayon_baselines.json", output_dir);
+    std::fs::write(&json_path, &json)
+        .map_err(|e| format!("Failed to write {}: {}", json_path, e))?;
+
+    println!("CSV saved to {}", csv_path);
+    println!("JSON saved to {}", json_path);
+
+    Ok(())
+}
+
+/// Execute the large-scale evaluation command.
+pub fn execute_large_scale_eval(output_dir: &str, sizes_str: &str, trials: usize) -> Result<(), String> {
+    use crate::benchmark::large_scale::{run_large_scale_evaluation, large_scale_to_csv};
+
+    std::fs::create_dir_all(output_dir)
+        .map_err(|e| format!("Failed to create {}: {}", output_dir, e))?;
+
+    let sizes: Vec<usize> = sizes_str
+        .split(',')
+        .map(|s| s.trim().parse().map_err(|e| format!("Invalid size: {}", e)))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    println!("Large-scale evaluation: sizes {:?}, {} trials", sizes, trials);
+    println!("{:-<90}", "");
+
+    let summary = run_large_scale_evaluation(&sizes, trials);
+
+    // Print results
+    println!("{:<20} {:>10} {:>12} {:>10} {:>10} {:>10} {:>10}",
+             "Algorithm", "Size", "Time (ns)", "L1 miss%", "L2 miss%", "Bound ratio", "MOPS");
+    println!("{:-<90}", "");
+    for p in &summary.points {
+        println!("{:<20} {:>10} {:>12} {:>10.4} {:>10.4} {:>10.4} {:>10.1}",
+                 p.algorithm, p.input_size, p.wall_time_ns,
+                 p.l1_miss_rate * 100.0, p.l2_miss_rate * 100.0,
+                 p.cache_bound_ratio, p.throughput_mops);
+    }
+    println!("{:-<90}", "");
+    println!("Max size tested: {}", summary.max_size_tested);
+    println!("Avg L1 miss rate: {:.4}%", summary.avg_l1_miss_rate * 100.0);
+    println!("Avg L2 miss rate: {:.4}%", summary.avg_l2_miss_rate * 100.0);
+    println!("Avg cache bound ratio: {:.4}", summary.avg_cache_bound_ratio);
+
+    if let Some(ref rayon) = summary.rayon_comparison {
+        println!("\nRayon comparison (HP/Rayon time ratio):");
+        println!("  Sort: {:?}", rayon.hp_vs_rayon_sort.iter()
+            .map(|(s, r)| format!("n={}:{:.2}x", s, r))
+            .collect::<Vec<_>>().join(", "));
+        println!("  Prefix: {:?}", rayon.hp_vs_rayon_prefix.iter()
+            .map(|(s, r)| format!("n={}:{:.2}x", s, r))
+            .collect::<Vec<_>>().join(", "));
+        println!("  Reduce: {:?}", rayon.hp_vs_rayon_reduce.iter()
+            .map(|(s, r)| format!("n={}:{:.2}x", s, r))
+            .collect::<Vec<_>>().join(", "));
+        println!("  Geometric mean: {:.2}x", rayon.geometric_mean_ratio);
+    }
+
+    for (alg, exp) in &summary.scaling_exponents {
+        println!("Scaling exponent ({}): {:.2}", alg, exp);
+    }
+
+    // Save CSV
+    let csv = large_scale_to_csv(&summary);
+    let csv_path = format!("{}/large_scale.csv", output_dir);
+    std::fs::write(&csv_path, &csv)
+        .map_err(|e| format!("Failed to write {}: {}", csv_path, e))?;
+
+    // Save JSON
+    let json = serde_json::to_string_pretty(&summary)
+        .map_err(|e| format!("Serialization error: {}", e))?;
+    let json_path = format!("{}/large_scale.json", output_dir);
+    std::fs::write(&json_path, &json)
+        .map_err(|e| format!("Failed to write {}: {}", json_path, e))?;
+
+    println!("CSV saved to {}", csv_path);
+    println!("JSON saved to {}", json_path);
+
+    Ok(())
+}
+
 /// Run the CLI with parsed arguments.
 pub fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
@@ -1167,6 +1316,8 @@ pub fn run(cli: Cli) -> Result<(), String> {
         Commands::HardwareBenchmark { output_dir, sizes } => execute_hardware_benchmark(&output_dir, &sizes),
         Commands::ScalabilityBenchmark { output_dir, sizes, trials } => execute_scalability_benchmark(&output_dir, &sizes, trials),
         Commands::GapAnalysis { output_dir, sizes, k } => execute_gap_analysis(&output_dir, &sizes, k),
+        Commands::RayonBaseline { output_dir, sizes, trials } => execute_rayon_baseline(&output_dir, &sizes, trials),
+        Commands::LargeScaleEval { output_dir, sizes, trials } => execute_large_scale_eval(&output_dir, &sizes, trials),
     }
 }
 

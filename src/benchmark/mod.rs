@@ -10,3 +10,5 @@ pub mod hardware_counters;
 pub mod adversarial;
 pub mod scalability;
 pub mod load_distribution;
+pub mod rayon_baselines;
+pub mod large_scale;

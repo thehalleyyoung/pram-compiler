@@ -1,0 +1,33 @@
+algorithm,input_size,hp_time_ns,rayon_time_ns,baseline_name,hp_to_rayon_ratio,rayon_speedup_vs_seq,trials,hp_stddev_ns,rayon_stddev_ns
+parallel_sort,1024,81375,625,rayon par_sort_unstable,130.2000,0.8000,5,55461.9,34.9
+parallel_prefix_sum,1024,199084,101792,rayon parallel prefix sum,1.9558,0.0299,5,60733.7,2650418.9
+parallel_merge_sort,1024,229584,543666,rayon chunk-sort + merge,0.4223,0.0023,5,8172.1,2279008.2
+parallel_reduce,1024,199333,603958,rayon par_iter().sum(),0.3300,0.0004,5,54912.9,864036.8
+parallel_map,1024,205000,193625,rayon par_iter().map(),1.0587,0.0069,5,11480.5,1375973.0
+parallel_matmul,1024,593209,839667,rayon row-parallel matmul,0.7065,0.0344,5,214751.2,2885491.2
+parallel_connectivity,1024,791250,47220292,rayon parallel label propagation,0.0168,0.0006,5,290511.6,9518004.8
+parallel_sort,4096,939167,6125,rayon par_sort_unstable,153.3334,0.7416,5,12078.7,383.7
+parallel_prefix_sum,4096,790916,269917,rayon parallel prefix sum,2.9302,0.0445,5,151083.6,825816.7
+parallel_merge_sort,4096,377541,1777583,rayon chunk-sort + merge,0.2124,0.0026,5,326814.1,881311.1
+parallel_reduce,4096,791542,63500,rayon par_iter().sum(),12.4652,0.0118,5,232082.9,1210791.3
+parallel_map,4096,280833,781125,rayon par_iter().map(),0.3595,0.0053,5,282701.7,2698479.0
+parallel_matmul,4096,2352083,10608667,rayon row-parallel matmul,0.2217,0.0625,5,848033.1,6846752.3
+parallel_connectivity,4096,2031792,240697083,rayon parallel label propagation,0.0084,0.0004,5,1036410.9,72416545.1
+parallel_sort,16384,1386500,9833,rayon par_sort_unstable,141.0048,0.7542,5,1009438.7,361.5
+parallel_prefix_sum,16384,2541958,2458542,rayon parallel prefix sum,1.0339,0.0199,5,859104.1,2545861.4
+parallel_merge_sort,16384,1522209,1044375,rayon chunk-sort + merge,1.4575,0.0072,5,600765.6,953455.0
+parallel_reduce,16384,2147250,249417,rayon par_iter().sum(),8.6091,0.0167,5,1395875.6,291300.0
+parallel_map,16384,1617500,121875,rayon par_iter().map(),13.2718,0.1631,5,1059670.5,540111.6
+parallel_matmul,16384,4715000,3075334,rayon row-parallel matmul,1.5332,1.1688,5,3960941.1,817567.4
+parallel_connectivity,16384,7745000,1227740166,rayon parallel label propagation,0.0063,0.0004,5,1878161.3,297744139.8
+parallel_sort,65536,5677875,39583,rayon par_sort_unstable,143.4423,0.7895,5,53558.9,151.5
+parallel_prefix_sum,65536,4353625,896125,rayon parallel prefix sum,4.8583,0.1603,5,25935.7,1721296.3
+parallel_merge_sort,65536,5621292,1110917,rayon chunk-sort + merge,5.0600,0.0687,5,2854416.7,14263581.7
+parallel_reduce,65536,4329041,18958,rayon par_iter().sum(),228.3490,0.4352,5,3219622.4,659523.7
+parallel_map,65536,4364916,92292,rayon par_iter().map(),47.2946,0.6984,5,3733508.8,1699070.3
+parallel_matmul,65536,16437458,17133750,rayon row-parallel matmul,0.9594,1.0895,5,2206820.7,9332102.2
+parallel_sort,262144,25746375,159042,rayon par_sort_unstable,161.8841,0.8025,5,4020792.7,25808.8
+parallel_prefix_sum,262144,24012416,9979042,rayon parallel prefix sum,2.4063,0.0780,5,4849131.6,7113538.4
+parallel_merge_sort,262144,29096084,11631292,rayon chunk-sort + merge,2.5015,0.0263,5,2245887.0,3674641.8
+parallel_reduce,262144,25108166,1221833,rayon par_iter().sum(),20.5496,0.0295,5,3520456.1,4422344.1
+parallel_map,262144,22107375,3936875,rayon par_iter().map(),5.6155,0.1154,5,5628335.6,5826367.1

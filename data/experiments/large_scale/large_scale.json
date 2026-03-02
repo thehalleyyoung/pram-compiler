@@ -1,0 +1,272 @@
+{
+  "points": [
+    {
+      "algorithm": "hash_partition",
+      "input_size": 1024,
+      "method": "siegel_k8",
+      "wall_time_ns": 114250,
+      "wall_time_per_element_ns": 111.572265625,
+      "l1_cache_misses": 16,
+      "l1_miss_rate": 0.015625,
+      "l2_cache_misses": 12,
+      "l2_miss_rate": 0.75,
+      "throughput_mops": 8.962800875273524,
+      "theoretical_cache_bound": 516,
+      "cache_bound_ratio": 0.031007751937984496
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 1024,
+      "method": "sequential",
+      "wall_time_ns": 0,
+      "wall_time_per_element_ns": 0.0,
+      "l1_cache_misses": 128,
+      "l1_miss_rate": 0.125,
+      "l2_cache_misses": 128,
+      "l2_miss_rate": 1.0,
+      "throughput_mops": 0.0,
+      "theoretical_cache_bound": 0,
+      "cache_bound_ratio": 0.0
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 4096,
+      "method": "siegel_k8",
+      "wall_time_ns": 272500,
+      "wall_time_per_element_ns": 66.5283203125,
+      "l1_cache_misses": 64,
+      "l1_miss_rate": 0.015625,
+      "l2_cache_misses": 42,
+      "l2_miss_rate": 0.65625,
+      "throughput_mops": 15.031192660550458,
+      "theoretical_cache_bound": 2052,
+      "cache_bound_ratio": 0.031189083820662766
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 4096,
+      "method": "sequential",
+      "wall_time_ns": 41,
+      "wall_time_per_element_ns": 0.010009765625,
+      "l1_cache_misses": 512,
+      "l1_miss_rate": 0.125,
+      "l2_cache_misses": 512,
+      "l2_miss_rate": 1.0,
+      "throughput_mops": 99902.43902439025,
+      "theoretical_cache_bound": 0,
+      "cache_bound_ratio": 0.0
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 16384,
+      "method": "siegel_k8",
+      "wall_time_ns": 1087375,
+      "wall_time_per_element_ns": 66.36810302734375,
+      "l1_cache_misses": 256,
+      "l1_miss_rate": 0.015625,
+      "l2_cache_misses": 158,
+      "l2_miss_rate": 0.6171875,
+      "throughput_mops": 15.067479020577077,
+      "theoretical_cache_bound": 8196,
+      "cache_bound_ratio": 0.031234748657881894
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 16384,
+      "method": "sequential",
+      "wall_time_ns": 42,
+      "wall_time_per_element_ns": 0.0025634765625,
+      "l1_cache_misses": 2048,
+      "l1_miss_rate": 0.125,
+      "l2_cache_misses": 2048,
+      "l2_miss_rate": 1.0,
+      "throughput_mops": 390095.2380952381,
+      "theoretical_cache_bound": 0,
+      "cache_bound_ratio": 0.0
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 65536,
+      "method": "siegel_k8",
+      "wall_time_ns": 4498208,
+      "wall_time_per_element_ns": 68.63720703125,
+      "l1_cache_misses": 32965,
+      "l1_miss_rate": 0.5030059814453125,
+      "l2_cache_misses": 1024,
+      "l2_miss_rate": 0.031063248900348856,
+      "throughput_mops": 14.569357397434711,
+      "theoretical_cache_bound": 32772,
+      "cache_bound_ratio": 1.005889173684853
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 65536,
+      "method": "sequential",
+      "wall_time_ns": 83,
+      "wall_time_per_element_ns": 0.0012664794921875,
+      "l1_cache_misses": 8192,
+      "l1_miss_rate": 0.125,
+      "l2_cache_misses": 8192,
+      "l2_miss_rate": 1.0,
+      "throughput_mops": 789590.361445783,
+      "theoretical_cache_bound": 0,
+      "cache_bound_ratio": 0.0
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 262144,
+      "method": "siegel_k8",
+      "wall_time_ns": 18088958,
+      "wall_time_per_element_ns": 69.00389862060547,
+      "l1_cache_misses": 229237,
+      "l1_miss_rate": 0.8744697570800781,
+      "l2_cache_misses": 4096,
+      "l2_miss_rate": 0.017867970702809755,
+      "throughput_mops": 14.491934803541476,
+      "theoretical_cache_bound": 131076,
+      "cache_bound_ratio": 1.748886142390674
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 262144,
+      "method": "sequential",
+      "wall_time_ns": 0,
+      "wall_time_per_element_ns": 0.0,
+      "l1_cache_misses": 32768,
+      "l1_miss_rate": 0.125,
+      "l2_cache_misses": 32768,
+      "l2_miss_rate": 1.0,
+      "throughput_mops": 0.0,
+      "theoretical_cache_bound": 0,
+      "cache_bound_ratio": 0.0
+    },
+    {
+      "algorithm": "hash_partition",
+      "input_size": 1048576,
+      "method": "siegel_k8",
+      "wall_time_ns": 80848542,
+      "wall_time_per_element_ns": 77.10317802429199,
+      "l1_cache_misses": 1015952,
+      "l1_miss_rate": 0.9688873291015625,
+      "l2_cache_misses": 16384,
+      "l2_miss_rate": 0.01612674614548719,
+      "throughput_mops": 12.969634010221235,
+      "theoretical_cache_bound": 524292,
+      "cache_bound_ratio": 1.9377598742685374
+    },
+    {
+      "algorithm": "sequential_scan",
+      "input_size": 1048576,
+      "method": "sequential",
+      "wall_time_ns": 42,
+      "wall_time_per_element_ns": 0.0000400543212890625,
+      "l1_cache_misses": 131072,
+      "l1_miss_rate": 0.125,
+      "l2_cache_misses": 131072,
+      "l2_miss_rate": 1.0,
+      "throughput_mops": 24966095.23809524,
+      "theoretical_cache_bound": 0,
+      "cache_bound_ratio": 0.0
+    }
+  ],
+  "cache_config": {
+    "l1_size_bytes": 32768,
+    "l1_line_size": 64,
+    "l1_associativity": 8,
+    "l2_size_bytes": 262144,
+    "l2_line_size": 64,
+    "l2_associativity": 8
+  },
+  "max_size_tested": 1048576,
+  "total_measurements": 12,
+  "avg_l1_miss_rate": 0.3988730112711589,
+  "avg_l2_miss_rate": 0.34808257762477424,
+  "avg_cache_bound_ratio": 0.7976611291267656,
+  "scaling_exponents": [
+    [
+      "hash_partition",
+      0.964872107293313
+    ]
+  ],
+  "rayon_comparison": {
+    "hp_vs_rayon_sort": [
+      [
+        1024,
+        119.64406779661017
+      ],
+      [
+        4096,
+        142.06072727272726
+      ],
+      [
+        16384,
+        137.862676757618
+      ],
+      [
+        65536,
+        138.39349366281778
+      ],
+      [
+        262144,
+        145.84240190377355
+      ],
+      [
+        1048576,
+        157.64185854108956
+      ]
+    ],
+    "hp_vs_rayon_prefix": [
+      [
+        1024,
+        0.24499089253187614
+      ],
+      [
+        4096,
+        1.0099040906724217
+      ],
+      [
+        16384,
+        3.0030646168099175
+      ],
+      [
+        65536,
+        7.360255591470726
+      ],
+      [
+        262144,
+        7.625589563472152
+      ],
+      [
+        1048576,
+        6.8517540640187695
+      ]
+    ],
+    "hp_vs_rayon_reduce": [
+      [
+        1024,
+        4.3886388834539884
+      ],
+      [
+        4096,
+        4.765394957983193
+      ],
+      [
+        16384,
+        34.87484584980237
+      ],
+      [
+        65536,
+        23.6161784989858
+      ],
+      [
+        262144,
+        1.7194058032007462
+      ],
+      [
+        1048576,
+        289.1330899907427
+      ]
+    ],
+    "geometric_mean_ratio": 17.247504108432004
+  }
+}

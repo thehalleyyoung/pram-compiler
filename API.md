@@ -32,6 +32,30 @@ Verify work and cache-miss bounds via simulation.
 cargo run --release -- verify --algorithm <NAME|all> --sizes <SIZES>
 ```
 
+### `rayon-baseline`
+Compare hash-partition approach against real rayon parallel baselines.
+```bash
+cargo run --release -- rayon-baseline --output-dir <DIR> --sizes <SIZES> --trials <N>
+```
+
+### `large-scale-eval`
+Run large-scale evaluation with L1/L2 cache simulation and rayon comparison.
+```bash
+cargo run --release -- large-scale-eval --output-dir <DIR> --sizes <SIZES> --trials <N>
+```
+
+### `scalability-benchmark`
+Run scalability evaluation at realistic input sizes.
+```bash
+cargo run --release -- scalability-benchmark --output-dir <DIR> --sizes <SIZES> --trials <N>
+```
+
+### `gap-analysis`
+Analyze theory-practice gap in hash load distributions.
+```bash
+cargo run --release -- gap-analysis --output-dir <DIR> --sizes <SIZES> --k <K>
+```
+
 ### `run-experiments`
 Full evaluation across all 51 algorithms.
 ```bash
@@ -39,7 +63,7 @@ cargo run --release -- run-experiments --output-dir <DIR> --sizes <SIZES>
 ```
 
 ### `compare`
-Compare hash-partition against baselines (cache simulation).
+Compare hash-partition against cache-oblivious baselines (cache simulation).
 ```bash
 cargo run --release -- compare --sizes <SIZES> --output <FILE>
 ```
@@ -63,7 +87,7 @@ cargo run --release -- analyze-failures --output <FILE>
 ```
 
 ### `hardware-benchmark`
-Generate hardware counter measurements with CSV data.
+Generate simulated cache counter measurements with CSV data.
 ```bash
 cargo run --release -- hardware-benchmark --output-dir <DIR> --sizes <SIZES>
 ```
@@ -83,6 +107,9 @@ use pram_compiler::pram_ir::ast::{PramProgram, MemoryModel, Stmt, Expr};
 use pram_compiler::codegen::adaptive::{AdaptiveCompiler, CompilationTarget};
 
 enum MemoryModel { EREW, CREW, CRCWPriority, CRCWArbitrary, CRCWCommon }
+// Note: CRCWArbitrary is implemented as deterministic lowest-index-writer
+// resolution (equivalent to Priority). This is sound for cache-miss analysis.
+
 enum CompilationTarget {
     Sequential,
     Parallel { num_threads: usize },
@@ -100,7 +127,7 @@ let gen = CodeGenerator::new(GeneratorConfig::default());
 let c_code = gen.generate(&program);
 
 let compiler = AdaptiveCompiler::new();
-let code = compiler.compile(&program, &CompilationTarget::Adaptive { crossover_n: 10000 });
+let code = compiler.compile(&program, &CompilationTarget::Sequential);
 ```
 
 ### Hash Partition Engine
@@ -110,109 +137,40 @@ use pram_compiler::hash_partition::partition_engine::{PartitionEngine, HashFamil
 
 let engine = PartitionEngine::new(num_blocks, block_size, HashFamilyChoice::Siegel { k: 8 }, seed);
 let result = engine.partition(&addresses);
-let result = engine.adaptive_partition(&addresses, &[64, 128, 256]);
 ```
 
-### Failure Analysis and Repair
+### Theorem Regime Analysis
 
 ```rust
-use pram_compiler::failure_analysis::analyzer::FailureAnalyzer;
-use pram_compiler::failure_analysis::fixer::apply_fixes;
-
-let analyzer = FailureAnalyzer::new();
-let analysis = analyzer.analyze(&program);
-let fix_result = apply_fixes(&mut program, &analysis);
-```
-
-### Profile-Guided Compilation
-
-```rust
-use pram_compiler::codegen::adaptive::ProfileGuidedCompiler;
-
-let pgc = ProfileGuidedCompiler::new();
-let result = pgc.compile_with_profiling(&program, &CompilationTarget::Adaptive { crossover_n: 10000 });
-```
-
-### Translation Validation
-
-```rust
-use pram_compiler::staged_specializer::translation_validation::TranslationValidator;
-use pram_compiler::staged_specializer::work_preservation::WorkCounter;
-
-let validator = TranslationValidator::new();
-let pre_work = WorkCounter::count(&original_body);
-let post_work = WorkCounter::count(&transformed_body);
-
-// Structural validation
-let result = validator.validate_structural(&original_body, &transformed_body, &pre_work, &post_work);
-
-// Full validation: structural + semantic equivalence on random inputs
-let result = validator.validate_full(
-    &original_body, &transformed_body, &pre_work, &post_work,
-    MemoryModel::EREW, &[("A".to_string(), 64)], 20,
-);
-
-// Confluence check (pass order independence)
-let confluence = validator.validate_confluence(&body, MemoryModel::EREW);
-```
-
-### Semantic Preservation Verification
-
-```rust
-use pram_compiler::failure_analysis::semantic_preservation::{
-    verify_semantic_preservation, ValidatedTransform, PreservationWitness,
+use pram_compiler::hash_partition::theorem_regime::{
+    analyze_theorem_regime, analyze_theorem_applicability, TheoremRegime,
 };
 
-let result = verify_semantic_preservation(
-    &original, &transformed, MemoryModel::EREW, &[("A".into(), 64)], 100,
-);
-
-let mut vt = ValidatedTransform::new(PreservationWitness::write_coalescing());
-let passed = vt.apply_and_verify(
-    &original, &transformed, MemoryModel::CRCWPriority, &[("A".into(), 64)],
-);
+let result = analyze_theorem_regime(65536, 512, 64, 8);
+// result.regime: CacheResident, Transitional, or CapacityDominated
+// result.bound_holds: whether c₃ ≤ 4 bound is satisfied
 ```
 
-### Compositional Pass Verification
+### Rayon Baseline Comparison
 
 ```rust
-use pram_compiler::staged_specializer::compositional_verification::verify_pass_composition;
-
-let result = verify_pass_composition(
-    &original_body, MemoryModel::EREW, &[("A".to_string(), 8)], 10,
-);
-assert!(result.all_preserved);
-```
-
-### Realistic Cache Simulation
-
-```rust
-use pram_compiler::benchmark::cache_sim::{
-    RealisticCacheConfig, count_cache_misses_realistic, compare_cache_models,
+use pram_compiler::benchmark::rayon_baselines::{
+    run_rayon_baseline_evaluation, rayon_baselines_to_csv,
 };
 
-let config = RealisticCacheConfig::default(); // 8-way, 64 sets, 64B lines
-let misses = count_cache_misses_realistic(&addresses, &config);
-let cmp = compare_cache_models(&addresses, &config);
+let summary = run_rayon_baseline_evaluation(&[1024, 65536, 262144], 5);
+println!("Geometric mean HP/Rayon ratio: {:.2}x", summary.geometric_mean_ratio);
 ```
 
-### Adversarial-Input Validation
+### Large-Scale Evaluation
 
 ```rust
-use pram_compiler::benchmark::adversarial::{run_adversarial_validation, summarize_adversarial};
+use pram_compiler::benchmark::large_scale::{
+    run_large_scale_evaluation, large_scale_to_csv,
+};
 
-let results = run_adversarial_validation(4096, 8);
-let summary = summarize_adversarial(&results);
-```
-
-### Operational Semantics
-
-```rust
-use pram_compiler::pram_ir::operational_semantics::{Store, exec_stmt, eval_to_value};
-
-let mut store = Store::new();
-store.alloc_shared("A", 1024);
-exec_stmt(&stmt, &mut store, Some(0), Some(4), MemoryModel::CRCWPriority).unwrap();
+let summary = run_large_scale_evaluation(&[1024, 65536, 1048576], 3);
+println!("Avg cache bound ratio: {:.4}", summary.avg_cache_bound_ratio);
 ```
 
 ### Algorithm Library
@@ -225,43 +183,15 @@ let prog = algorithm_library::sorting::bitonic_sort();
 let prog = algorithm_library::graph::shiloach_vishkin();
 ```
 
-### Parallel Batch Compilation
+### Work Preservation Verification
 
 ```rust
-use pram_compiler::codegen::parallel_batch::{compile_batch, compile_multi_target};
+use pram_compiler::staged_specializer::work_preservation::{WorkCounter, WorkBoundChecker};
 
-let results = compile_batch(&programs, &CompilationTarget::Sequential);
-let results = compile_multi_target(&program, &targets);
-```
-
-### Hardware Counter Benchmarks
-
-```rust
-use pram_compiler::benchmark::hardware_counters::{measure_hardware_counters, counters_to_csv};
-
-let counters = measure_hardware_counters(&programs, &sizes, l1_size, l1_line, l1_assoc, l2_size, l2_line, l2_assoc);
-let csv = counters_to_csv(&counters);
-```
-
-### PGO Distributional Analysis
-
-```rust
-use pram_compiler::autotuner::distributional_analysis::{
-    analyze_pgo_sensitivity, analyze_crossover_sensitivity, find_algorithm_crossover,
-};
-
-let analysis = analyze_pgo_sensitivity(&hierarchy, 1024);
-let sensitivity = analyze_crossover_sensitivity(&hierarchy, 1024);
-let crossover = find_algorithm_crossover("bitonic_sort", &hp_misses, &co_misses);
-```
-
-### SSS Bounded-Independence Bounds
-
-```rust
-use pram_compiler::hash_partition::overflow_analysis::{sss_failure_probability, tail_bounds_with_independence};
-
-let prob = sss_failure_probability(10000, 1250, 8, 30.0);
-let tb = tail_bounds_with_independence(8.0, 8.0, 20.0, Some(8), 10000, 1250);
+let pre_work = WorkCounter::count(&original_body);
+let post_work = WorkCounter::count(&transformed_body);
+let checker = WorkBoundChecker::new();
+let result = checker.check(&pre_work, &post_work);
 ```
 
 ### Property-Based Testing
@@ -273,33 +203,13 @@ let results = run_all_property_tests(); // 2,700+ trials across 6 properties
 for r in &results { assert!(r.all_passed()); }
 ```
 
-### Scalability Benchmarks
+### Cache Simulation
 
 ```rust
-use pram_compiler::benchmark::scalability::{
-    run_scalability_evaluation, benchmark_sort_comparison, scalability_to_csv,
-};
+use pram_compiler::benchmark::cache_sim::{CacheSimulator, SetAssociativeCache};
 
-let summary = run_scalability_evaluation(&[1024, 16384, 262144], 5);
-let csv = scalability_to_csv(&summary);
-
-// Compare hash-partition vs best-available baselines
-let sort_cmp = benchmark_sort_comparison(65536, 5);
-println!("Speedup vs introsort: {:.2}x", sort_cmp.speedup);
-```
-
-### Theory-Practice Gap Analysis
-
-```rust
-use pram_compiler::benchmark::load_distribution::{
-    analyze_theory_practice_gap, analyze_load_distribution, AccessPatternType,
-};
-
-let report = analyze_theory_practice_gap(&[1000, 10000, 100000], 8);
-println!("Gap explanation: {}", report.gap_explanation);
-println!("Structural regularity factor: {:.2}", report.structural_regularity_factor);
-
-// Per-pattern analysis
-let result = analyze_load_distribution(AccessPatternType::Sequential, 10000, 1250, 8);
-println!("SSS bound: {:.1}, Empirical max: {}", result.sss_theoretical_bound, result.empirical_max_load);
+let mut sim = CacheSimulator::new(64, 512); // 64B lines, 512 lines
+sim.access_sequence(&trace);
+let stats = sim.stats();
+println!("Miss rate: {:.4}", stats.miss_rate());
 ```

@@ -617,6 +617,7 @@ impl MemoryModelChecker {
                         writers,
                         match model {
                             MemoryModel::CRCWPriority => WriteResolution::Priority,
+                            MemoryModel::CRCWArbitrary => WriteResolution::Arbitrary,
                             MemoryModel::CRCWCommon => WriteResolution::Common,
                             _ => WriteResolution::Priority,
                         },

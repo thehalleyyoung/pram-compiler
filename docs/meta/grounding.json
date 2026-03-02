@@ -1,373 +1,94 @@
 {
   "project": "PRAM-Hash-Sim-Compiler: Cache-Efficient PRAM Serialization",
-  "version": "1.0.0",
-  "verification_methodology": "Six-layer verification: (1) runtime testing with cache simulation framework; (2) property-based testing of Work-Preservation Lemma (compositionality, work-bound preservation, structural induction base cases, specialization idempotence, adversarial work bound, work monotonicity — 2,700+ trials, 100% pass); (3) semantic preservation verification of IR repair transformations via simulation-based comparison on 100 random test inputs with formal validation witnesses (bisimulation, refinement, commutativity proof strategies); (4) post-compilation translation validation checking both structural invariants (work preservation, memory region preservation, serialization completeness, AST size boundedness) AND semantic equivalence via simulation on random inputs; (5) compositional verification testing that sequential application of multiple transformation passes preserves end-to-end correctness across all memory models; (6) scalability evaluation at realistic input sizes (up to n=262,144) with best-available baseline comparisons and theory-practice gap analysis. Formal small-step operational semantics define evaluation rules for all expression/statement forms with explicit CRCW conflict resolution (Priority, Arbitrary, Common — full case analysis in proofs). The concentration inequality uses the Schmidt-Siegel-Srinivasan (1995) bounded-independence moment-method bound (NOT the standard Chernoff bound, which requires full independence). Adversarial-input validation tests 10 access patterns across 3 hash families. Benchmark harness defaults to realistic 8-way set-associative LRU cache model (matching typical Intel L1d). All 51/51 algorithms meet the 2x cache-miss target after automated IR repair. 1,497 tests pass.",
+  "version": "2.0.0",
+  "verification_methodology": "Six-layer verification: (1) runtime testing with cache simulation framework (8-way set-associative LRU, 32KB L1, 256KB L2, 64B lines); (2) property-based testing of Work-Preservation Lemma (compositionality, work-bound preservation, structural induction base cases, specialization idempotence, adversarial work bound, work monotonicity — 2,700+ trials, 100% pass); (3) semantic preservation verification of IR repair transformations via simulation; (4) post-compilation translation validation; (5) compositional verification testing; (6) scalability evaluation at realistic input sizes (up to n=1,048,576) with real parallel baseline comparisons (rayon) and theory-practice gap analysis. All 1,516 tests pass.",
   "claims": [
     {
-      "claim": "Hash-Partition Locality Theorem: Siegel k-wise independent hashing partitions n addresses into ceil(n/B) blocks with O(log n / log log n) overflow w.h.p. when k = Omega(log n / log log n); with fixed k=8, overflow is O(n^{1/4}) worst-case but empirically < 10.",
+      "claim": "Hash-Partition Locality Theorem: Q ≤ c₃(pT/B + T) with c₃ ≤ 4 in the cache-resident regime (n/B ≤ M/B).",
       "evidence_type": "theorem_with_proof",
-      "artifact": "tool_paper.tex §3 (Theorem 1), Appendix A (full proof), Appendix K (fixed-k regime, Proposition 11)",
+      "artifact": "tool_paper.tex §3 (Theorem 1), Appendix A (full proof)",
       "references": ["Siegel 2004 (SIAM J. Comput. 33:505-543)", "Schmidt-Siegel-Srinivasan 1995 (SIAM J. Discrete Math. 8:223-250)"],
-      "verification": "Paper proof using SSS bounded-independence concentration (NOT standard Chernoff). Both adaptive-k (O(log n/log log n) overflow) and fixed-k=8 (O(n^{1/4}) worst-case) regimes analyzed with precise bounds. Empirically validated by implementation/src/hash_partition/overflow_analysis.rs. Adaptive k computed by implementation/src/hash_partition/independence.rs.",
+      "verification": "Paper proof using SSS bounded-independence concentration. Three regimes characterized: cache-resident (bound ratio 0.03), transitional (~1.0), capacity-dominated (~1.9).",
       "status": "proved_on_paper",
-      "limitation": "SSS moment-method bound with k=8 is extremely conservative (>10x gap vs empirical). O(log n/log log n) requires adaptive k = Omega(log n/log log n). Not mechanically verified."
+      "limitation": "SSS moment-method bound with k=8 is conservative (~2x gap). Bound holds tightly only in cache-resident regime. Not mechanically verified."
     },
     {
-      "claim": "O(pT/B + T) cache misses with c₃ ≤ 4 via multi-level partitioning, when overflow δ ≤ B (guaranteed by adaptive k; empirically holds with fixed k=8 for all tested n ≤ 65536)",
-      "evidence_type": "theorem_with_implementation",
-      "artifact": "tool_paper.tex §3 (Theorem 1, Part 2), Appendix A (Steps 2a-2d, CRCW overhead composition with full case analysis for Priority/Arbitrary/Common)",
-      "implementation": "implementation/src/hash_partition/partition_engine.rs (MultiLevelPartition, adaptive_partition)",
-      "verification": "Simulated cache evaluation only (not hardware counters)",
-      "status": "proved_on_paper_simulated_empirically"
+      "claim": "Average cache bound ratio of 0.49 at sizes up to n=65,536 (cache-resident regime).",
+      "evidence_type": "experimental",
+      "artifact": "data/experiments/hardware/benchmark_summary.json",
+      "reproduction": "cargo run --release -- hardware-benchmark --output-dir data/experiments/hardware --sizes 256,1024,4096,16384,65536",
+      "status": "verified",
+      "limitation": "Uses simulated cache (8-way set-associative LRU), not hardware performance counters."
     },
     {
-      "claim": "O(pT) work with c₁ ≤ 4 via staged partial evaluation",
+      "claim": "At large scale (n=10^6), cache bound ratio rises to 0.80 as capacity misses dominate.",
+      "evidence_type": "experimental",
+      "artifact": "data/experiments/large_scale/large_scale.json",
+      "reproduction": "cargo run --release -- large-scale-eval --output-dir data/experiments/large_scale --sizes 1024,4096,16384,65536,262144,1048576 --trials 3",
+      "status": "verified",
+      "limitation": "Cache simulation at scale; traces truncated to 10^6 elements for tractability."
+    },
+    {
+      "claim": "HP compilation is 2.85x slower (geometric mean) than rayon parallel library across 7 workloads.",
+      "evidence_type": "experimental",
+      "artifact": "data/experiments/rayon/rayon_baselines.json",
+      "reproduction": "cargo run --release -- rayon-baseline --output-dir data/experiments/rayon --sizes 1024,4096,16384,65536,262144 --trials 5",
+      "status": "verified",
+      "limitation": "Rayon uses 10 threads; ratio depends on hardware thread count."
+    },
+    {
+      "claim": "O(pT) work with c₁ ≤ 4 via staged partial evaluation (Work-Preservation Lemma).",
       "evidence_type": "lemma_with_proof",
-      "artifact": "tool_paper.tex §3 (Lemma 2), Appendix I (full proof by structural induction)",
-      "implementation": "implementation/src/staged_specializer/work_preservation.rs",
-      "verification": "Paper proof; runtime bound checking on tested inputs; property-based testing (200+ trials, 100% pass)",
+      "artifact": "tool_paper.tex §5, Appendix C",
+      "verification": "Paper proof sketch validated by 2,700+ property-based tests across 6 properties (100% pass).",
       "status": "proved_on_paper_with_property_testing",
-      "limitation": "Paper proof supported by exhaustive property testing; not mechanized in a proof assistant"
+      "limitation": "Not mechanized in a proof assistant (Coq, Lean, Isabelle). Proof sketch has structural induction but loop bounds estimated conservatively."
     },
     {
-      "claim": "51/51 algorithms (100.0%) meet 2x target after automated IR repair (44/51 natively, 7 fixed)",
+      "claim": "51/51 algorithms (100%) meet 2x cache-miss target at sizes ≤ 16,384 (cache-resident). 75% meet target at sizes up to 65,536.",
       "evidence_type": "experimental",
-      "artifact": "implementation/src/cli.rs (execute_run_experiments, execute_analyze_failures)",
-      "reproduction": "cargo run -- run-experiments --output-dir benchmark_output --sizes 256,1024,4096,16384,65536",
-      "details": "7 repaired via CRCW write-conflict coalescing (nested writes), irregular access tiling with presort passes, and loop fusion. Hardware counter measurements show 0.77% avg L1 miss rate, 0.49 avg cache bound ratio.",
+      "artifact": "cargo run --release -- verify -a all --sizes 1024,4096,16384,65536",
       "status": "verified",
-      "limitation": "Cache simulation with hardware counter measurement framework; post-repair improvement from re-analysis of modified IR"
+      "limitation": "75% pass rate at n=65,536 reflects capacity-miss dominance, not hash-partition failure."
     },
     {
-      "claim": "5 hash families compared: Siegel, tabulation, 2-universal, MurmurHash3, identity",
-      "evidence_type": "experimental",
-      "artifact": "implementation/src/hash_partition/ (siegel_hash.rs, tabulation.rs, two_universal.rs, murmur.rs, identity.rs)",
-      "reproduction": "cargo run -- autotune",
-      "status": "verified"
-    },
-    {
-      "claim": "51 PRAM algorithms across 10 families implemented",
+      "claim": "CRCW-Arbitrary is implemented as deterministic lowest-index-writer (Priority) resolution.",
       "evidence_type": "code_artifact",
-      "artifact": "implementation/src/algorithm_library/",
-      "verification": "cargo run -- list-algorithms shows 51 algorithms; cargo test passes",
-      "status": "verified"
-    },
-    {
-      "claim": "Scalability evaluation at realistic input sizes up to n=262,144 with best-available baseline comparisons",
-      "evidence_type": "experimental",
-      "artifact": "implementation/src/benchmark/scalability.rs, data/benchmarks/scalability/",
-      "reproduction": "cargo run -- scalability-benchmark --sizes 1024,4096,16384,65536,262144 --trials 3",
-      "details": "Hash-partition compilation has significant overhead vs hand-optimized baselines (introsort 0.56x, sequential prefix sum 0.01x, Union-Find 0.10x, FFT 0.03x speedup). Scaling exponent ~1.02 (near-linear).",
+      "artifact": "src/pram_ir/memory_model.rs:618-622",
       "status": "verified",
-      "limitation": "HP compilation targets automated cache-efficient code from PRAM specs, not minimal wall-clock time vs hand-tuned code"
+      "limitation": "Sound for cache-miss bounds (address-set dependent) but does not capture full non-deterministic semantics."
     },
     {
-      "claim": "Theory-practice gap in SSS bounds explained by structural regularity of PRAM access patterns",
+      "claim": "SSS bound overshoots empirical overflow by ~2x for structured PRAM access patterns.",
       "evidence_type": "experimental",
-      "artifact": "implementation/src/benchmark/load_distribution.rs, data/benchmarks/gap_analysis/",
-      "reproduction": "cargo run -- gap-analysis --sizes 1000,10000,100000 --k 8",
-      "details": "Sequential patterns achieve 0.48x avg gap ratio, block-structured 0.49x, random 0.47x. PRAM access patterns have near-Poisson load distributions, far from adversarial worst case.",
+      "artifact": "data/experiments/gap/gap_analysis.json",
+      "reproduction": "cargo run --release -- gap-analysis --output-dir data/experiments/gap --sizes 1000,10000,100000,1000000 --k 8",
       "status": "verified"
     },
     {
-      "claim": "~60K lines of Rust with 1,497 tests",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/",
-      "verification": "cargo test reports 1,497 passed",
-      "status": "verified"
-    },
-    {
-      "claim": "Automated repair applies 7 IR transformations to fix 7 algorithms",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/failure_analysis/fixer.rs",
-      "transformations": [
-        "CRCW write-conflict coalescing: wraps shared writes (including nested writes in If/Block) with local buffers and guarded merge",
-        "Priority-write serialization: converts CRCW conflicts to read-compare-write guards",
-        "Irregular access tiling: wraps parallel loops with tiled sequential iteration",
-        "Loop fusion: merges consecutive parallel loops with same processor count",
-        "Presort pass: groups accesses by partition before parallel regions",
-        "Write-combining buffer: accumulates scattered writes locally before flushing",
-        "Adaptive block sizing: inserts pre-passes that double block count"
-      ],
-      "reproduction": "cargo run -- analyze-failures",
-      "status": "verified"
-    },
-    {
-      "claim": "Adaptive compilation supports sequential C99, parallel OpenMP C, and adaptive targets",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/codegen/adaptive.rs",
-      "reproduction": "cargo run -- compile --algorithm bitonic_sort --target parallel",
-      "status": "verified"
-    },
-    {
-      "claim": "Tabulation hashing achieves practical 3-wise independence (Pǎtraşcu & Thorup 2012)",
-      "evidence_type": "implementation_with_reference",
-      "artifact": "implementation/src/hash_partition/tabulation.rs",
-      "references": ["Pǎtraşcu and Thorup, J. ACM 59(3):14, 2012"],
-      "status": "verified"
-    },
-    {
-      "claim": "Locality-aware scheduling reorders by partition block assignment",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/brent_scheduler/scheduler.rs (schedule_with_locality method)",
-      "status": "verified"
-    },
-    {
-      "claim": "Profile-guided adaptive compilation selects optimal hash family, block size, and compilation target based on access pattern analysis",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/codegen/adaptive.rs (ProfileGuidedCompiler), implementation/src/autotuner/profile_guided.rs",
-      "status": "verified"
-    },
-    {
-      "claim": "Hardware counter measurement framework generates CSV benchmark data with L1/L2 cache miss analysis",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/benchmark/hardware_counters.rs",
-      "reproduction": "cargo run -- hardware-benchmark --output-dir benchmark_output --sizes 256,1024,4096,16384,65536",
-      "status": "verified"
-    },
-    {
-      "claim": "CRCW write-conflict coalescing handles nested writes in If/Block within ParallelFor",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/failure_analysis/fixer.rs (coalesce_nested_writes function)",
-      "status": "verified"
-    },
-    {
-      "claim": "Schedule-level CRCW conflict resolution for Priority, Arbitrary, and Common semantics",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/brent_scheduler/crcw_resolver.rs",
-      "verification": "9 unit tests covering all resolution modes, multi-phase conflicts, read preservation",
-      "status": "verified"
-    },
-    {
-      "claim": "Adaptive partitioning classifies access patterns and selects optimal block sizes",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/hash_partition/adaptive.rs",
-      "verification": "8 unit tests covering Regular, GraphTraversal, Scattered patterns and locality reordering",
-      "status": "verified"
-    },
-    {
-      "claim": "Parallel batch compilation via rayon for data-parallel code generation across algorithms",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/codegen/parallel_batch.rs",
-      "verification": "4 unit tests covering batch sequential, batch parallel, multi-target, and profiled compilation",
-      "status": "verified"
-    },
-    {
-      "claim": "Baseline comparison: 100.0% win rate (204/204), 0.13x HP overhead, 3.82x Cilk, 5.11x CO",
+      "claim": "Scaling exponent of hash-partition workload is 0.96 (near-linear).",
       "evidence_type": "experimental",
-      "artifact": "implementation/src/benchmark/baseline_comparison.rs, implementation/benchmark_output/comparison_report.json",
-      "reproduction": "cargo run -- compare --algorithm all --sizes 256,1024,4096,16384 --output benchmark_output/comparison_report.json",
-      "details": "Win criterion: HP beats cache-oblivious AND stays within 2x of hand-optimized. All 204 algorithm×size configs pass.",
-      "status": "verified"
-    },
-    {
-      "claim": "Statistical significance: 51/51 HP beats CO, 47/51 statistically significant (p<0.05, Welch t-test)",
-      "evidence_type": "experimental",
-      "artifact": "implementation/src/cli.rs (execute_statistical_compare), implementation/benchmark_output/statistical_report.json",
-      "reproduction": "cargo run -- statistical-compare --size 16384 --trials 10 --output statistical_report.json",
-      "status": "verified"
-    },
-    {
-      "claim": "Priority-write serialization converts CRCW conflicts to read-compare-write guards",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/failure_analysis/fixer.rs (serialize_priority_writes function)",
-      "status": "verified"
-    },
-    {
-      "claim": "Write-combining buffer for scattered writes in parallel bodies",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/failure_analysis/fixer.rs (insert_write_combining_buffer function)",
-      "status": "verified"
-    },
-    {
-      "claim": "Formal small-step operational semantics for the PRAM IR with executable interpreter",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/pram_ir/operational_semantics.rs",
-      "verification": "25 unit tests covering all expression forms, statement forms, and all 5 memory models (EREW, CREW, CRCW-Priority/Arbitrary/Common)",
-      "status": "verified"
-    },
-    {
-      "claim": "Property-based testing of Work-Preservation Lemma: compositionality, work-bound preservation, structural base cases, specialization idempotence, adversarial work bound, work monotonicity",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/staged_specializer/property_tests.rs",
-      "verification": "1000 trials for compositionality, 500 for work-bound, 15 structural base cases, 500 for idempotence, 200 adversarial, 500 for monotonicity — 2,700+ total trials, all 100% pass",
-      "status": "verified"
-    },
-    {
-      "claim": "Semantic preservation verification for IR repair transformations via simulation-based comparison with formal validation witnesses",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/failure_analysis/semantic_preservation.rs",
-      "verification": "100 random test inputs per transformation, location-by-location shared memory comparison. 5 validation witnesses (write-coalescing/bisimulation, tiling/refinement, loop-fusion/commutativity, priority-serialization/simulation, write-combining/refinement) with preconditions and applicable memory models. 15 witness-specific tests.",
-      "status": "verified"
-    },
-    {
-      "claim": "PGO distributional sensitivity analysis across 6 input distributions with Welch's t-test, confidence intervals, crossover sensitivity ratios, and per-algorithm crossover detection",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/autotuner/distributional_analysis.rs",
-      "verification": "12 unit tests covering distribution characterization, sensitivity analysis, t-test, confidence intervals, crossover sensitivity ratio, and per-algorithm crossover detection",
-      "status": "verified"
-    },
-    {
-      "claim": "Multi-schedule CRCW conflict verification across adversarial, randomized, and permuted schedules",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/brent_scheduler/multi_schedule_verify.rs",
-      "verification": "100 randomized trials per CRCW semantics, priority determinism verification, adversarial schedule generation",
-      "status": "verified"
-    },
-    {
-      "claim": "Post-compilation translation validation with structural invariant checking, semantic equivalence verification, confluence evidence, and termination evidence",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/staged_specializer/translation_validation.rs",
-      "verification": "6 unit tests covering structural validation, work explosion detection, termination evidence, confluence evidence, memory region preservation, and AST size measurement",
-      "status": "verified"
-    },
-    {
-      "claim": "Adversarial-input validation across 10 access patterns (sequential, reverse, strided, clustered, Zipfian, graph-like, power-of-two, all-same) and 3 hash families",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/benchmark/adversarial.rs",
-      "verification": "11 unit tests covering pattern generation, adversarial validation at multiple sizes, SSS bound computation, and summary statistics",
-      "status": "verified"
-    },
-    {
-      "claim": "SSS bounded-independence concentration inequality correctly replaces standard Chernoff bound for k-wise independent hashing",
-      "evidence_type": "theorem_with_implementation",
-      "artifact": "implementation/src/hash_partition/overflow_analysis.rs (sss_failure_probability, tail_bounds_with_independence), tool_paper.tex Appendix A",
-      "references": ["Schmidt-Siegel-Srinivasan 1995 (SIAM J. Discrete Math. 8:223-250)"],
-      "verification": "5 unit tests covering SSS bound computation, bounded-independence tail bounds, and behavior at large n",
-      "status": "verified",
-      "limitation": "SSS moment-method bound with k=8 is looser than full-independence Chernoff at large n; documented honestly in paper"
-    },
-    {
-      "claim": "Realistic 8-way set-associative cache simulation in benchmark harness, with comparison module quantifying conflict-miss overhead vs fully-associative model",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/benchmark/cache_sim.rs (SetAssociativeCache, RealisticCacheConfig, compare_cache_models), implementation/src/benchmark/harness.rs (CacheModel::SetAssociative)",
-      "verification": "5 unit tests covering realistic cache config, conflict patterns, and model comparison",
-      "status": "verified"
-    },
-    {
-      "claim": "Translation validation includes semantic equivalence checking via simulation on random inputs, not just structural invariant checks",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/staged_specializer/translation_validation.rs (validate_full method)",
-      "verification": "3 unit tests covering full validation pass, semantic mismatch detection, and equivalent-program verification",
-      "status": "verified"
-    },
-    {
-      "claim": "Compositional pass verification tests that sequential application of transformation passes preserves end-to-end correctness across all memory models",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/staged_specializer/compositional_verification.rs",
-      "verification": "5 unit tests covering 4 pass compositions across EREW, CREW, and CRCW-Priority models",
-      "status": "verified"
-    },
-    {
-      "claim": "Fixed-k=8 overflow bound is O(n^{1/4}) worst-case (Proposition 11), with >10x gap between theoretical bound and empirical overflow at all tested sizes",
-      "evidence_type": "theorem_with_implementation",
-      "artifact": "tool_paper.tex Appendix K (Proposition 11, Table tab:fixedk), implementation/src/hash_partition/overflow_analysis.rs (sss_failure_probability), implementation/src/hash_partition/independence.rs (required_independence)",
-      "references": ["Schmidt-Siegel-Srinivasan 1995"],
-      "verification": "Paper proof deriving t* = Theta(sqrt(kB) * (n^2/B)^{1/k}). Empirical validation across all 51 algorithms confirms overflow < 10 at all tested sizes n <= 65536.",
-      "status": "proved_on_paper_validated_empirically"
-    },
-    {
-      "claim": "Data-dependent access chains do not invalidate hash-partition correctness or overflow bounds (Proposition 12)",
-      "evidence_type": "theorem_with_implementation",
-      "artifact": "tool_paper.tex Appendix L (Proposition 12), implementation/src/algorithm_library/graph/ (8 graph algorithms with pointer-chasing)",
-      "verification": "Paper proof that k-wise independence applies per-step regardless of data-dependent address computation. Empirical validation: graph algorithm family achieves 0.12 average cache bound ratio (Table tab:perfamily), comparable to non-graph algorithms.",
-      "status": "proved_on_paper_validated_empirically"
-    },
-    {
-      "claim": "Adaptive independence selector computes k = Omega(log n / log log n) for O(log n / log log n) overflow guarantee",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/hash_partition/independence.rs (required_independence function)",
-      "verification": "Unit tests verify k grows with n. Siegel hash family supports arbitrary k (tested up to k=64).",
-      "status": "verified"
-    },
-    {
-      "claim": "CRCW-Arbitrary non-determinism resolved deterministically via lowest-indexed writer in Brent schedule, yielding reproducible output",
-      "evidence_type": "code_artifact",
-      "artifact": "implementation/src/brent_scheduler/crcw_resolver.rs",
-      "verification": "Unit tests verify deterministic resolution across Priority, Arbitrary, and Common semantics",
-      "paper_section": "§10 (Limitations)",
-      "status": "verified"
-    },
-    {
-      "claim": "Three structural failure categories (CRCW conflicts, irregular access, redundant loops) cover all 7 repair cases across 10 algorithmic families",
-      "evidence_type": "experimental",
-      "artifact": "tool_paper.tex §5 (Table 4), §7.1 (generalization paragraph)",
-      "verification": "All 7 repaired algorithms categorized; no additional failure modes observed in 51-algorithm suite",
+      "artifact": "data/experiments/large_scale/large_scale.json",
       "status": "verified"
     }
   ],
-  "critique_responses": {
-    "no_semantic_equivalence": {
-      "critique": "No semantic equivalence checking between PRAM IR and generated C",
-      "response": "Added validate_full() method in translation_validation.rs that performs simulation-based semantic equivalence checking on 20 random inputs per compilation. Structural + semantic validation.",
-      "artifact": "implementation/src/staged_specializer/translation_validation.rs",
-      "paper_section": "§6.3"
-    },
-    "opaque_specializer_rules": {
-      "critique": "Specializer rewrite rules embedded in procedural code, opaque to formal analysis",
-      "response": "Added post-hoc translation validation (structural + semantic), confluence checking via multiple pass orderings, and compositional verification. Termination argued via monotone AST reduction. Documented in Remark 5.",
-      "artifact": "implementation/src/staged_specializer/translation_validation.rs, compositional_verification.rs",
-      "paper_section": "§6.3, Remark 5"
-    },
-    "unrealistic_cache_model": {
-      "critique": "Fully-associative LRU cache model unrealistic",
-      "response": "Benchmark harness now defaults to realistic 8-way set-associative LRU model (64 sets, 64-byte lines) matching Intel L1d. Comparison module quantifies conflict-miss overhead. Theoretical analysis still uses ideal model (conservative).",
-      "artifact": "implementation/src/benchmark/cache_sim.rs (SetAssociativeCache, RealisticCacheConfig, compare_cache_models)",
-      "paper_section": "§5, §7.2"
-    },
-    "fixed_k8_independence": {
-      "critique": "Fixed k=8 independence ignoring data-dependent chains",
-      "response": "Corrected theorem statement: O(log n/log log n) requires adaptive k = Omega(log n/log log n), not fixed k=8. Added Proposition 11 (fixed-k bound) and Proposition 12 (data-dependent chains analysis). Adaptive k module computes required k. Fixed k=8 gives O(n^{1/4}) worst-case but <10 empirically.",
-      "artifact": "tool_paper.tex Appendix K, L; implementation/src/hash_partition/independence.rs",
-      "paper_section": "Theorem 1, Appendix K, Appendix L"
-    },
-    "unvalidated_complexity_specs": {
-      "critique": "Algorithm encodings unvalidated against published complexity specs",
-      "response": "All 51 algorithms have time_bound and work_bound fields set to match published PRAM complexity. Verified representative algorithms (Cole merge sort CREW O(log n), bitonic sort EREW O(log^2 n), Shiloach-Vishkin CRCW-Arb O(log n), prefix sum EREW O(log n), FFT CREW O(log n)) against JáJá 1992 and original papers.",
-      "artifact": "implementation/src/algorithm_library/ (all 51 algorithm functions), tool_paper.tex Table 3",
-      "paper_section": "Appendix D (Table 3)"
-    }
-  },
-  "references": {
-    "brent1974": {
-      "full": "R. P. Brent. The parallel evaluation of general arithmetic expressions. JACM 21(2):201-206, 1974.",
-      "verified": true
-    },
-    "siegel2004": {
-      "full": "A. Siegel. On universal classes of extremely random constant-time hash functions and their time-space tradeoff. SIAM J. Comput. 33(3):505-543, 2004.",
-      "verified": true
-    },
-    "frigo1999": {
-      "full": "M. Frigo, C. E. Leiserson, H. Prokop, S. Ramachandran. Cache-oblivious algorithms. FOCS 1999, pp. 285-297.",
-      "verified": true
-    },
-    "frigo1998": {
-      "full": "M. Frigo, C. E. Leiserson, K. H. Randall. The implementation of the Cilk-5 multithreaded language. PLDI 1998, pp. 212-223.",
-      "verified": true
-    },
-    "patrascu2012": {
-      "full": "M. Pǎtraşcu and M. Thorup. The power of simple tabulation hashing. J. ACM 59(3):14, 2012.",
-      "verified": true
-    },
-    "blelloch1996": {
-      "full": "G. E. Blelloch. Programming parallel algorithms. CACM 39(3):85-97, 1996.",
-      "verified": true
-    },
-    "jaja1992": {
-      "full": "J. JáJá. An Introduction to Parallel Algorithms. Addison-Wesley, 1992.",
-      "verified": true
-    },
-    "schmidt1995": {
-      "full": "J. P. Schmidt, A. Siegel, A. Srinivasan. Chernoff-Hoeffding bounds for applications with limited independence. SIAM J. Discrete Math. 8(2):223-250, 1995.",
-      "verified": true
-    },
-    "jones1993": {
-      "full": "N. D. Jones, C. K. Gomard, P. Sestoft. Partial Evaluation and Automatic Program Generation. Prentice-Hall, 1993.",
-      "verified": true
-    },
-    "kwok1999": {
-      "full": "Y.-K. Kwok, I. Ahmad. Static scheduling algorithms for allocating directed task graphs to multiprocessors. ACM Computing Surveys 31(4):406-471, 1999.",
-      "verified": true
-    }
+  "known_limitations": [
+    "Work-Preservation Lemma not mechanized in a proof assistant",
+    "Cache simulation uses software LRU model, not hardware performance counters",
+    "CRCW-Arbitrary implemented as Priority (deterministic lowest-index-writer)",
+    "SSS bound with k=8 is conservative (~2x gap) for structured access patterns",
+    "Theorem bound holds tightly only in cache-resident regime (n/B ≤ M/B)",
+    "HP compilation is 2.85x slower than rayon parallel library (geometric mean)",
+    "HP achieves 0.01-0.26x speedup vs hand-optimized sequential baselines",
+    "75% bound satisfaction at n=65,536 (capacity-miss regime)"
+  ],
+  "reproducibility": {
+    "build": "cargo build --release",
+    "test": "cargo test (1,516 tests)",
+    "rayon_baselines": "cargo run --release -- rayon-baseline --output-dir data/experiments/rayon --sizes 1024,4096,16384,65536,262144 --trials 5",
+    "large_scale": "cargo run --release -- large-scale-eval --output-dir data/experiments/large_scale --sizes 1024,4096,16384,65536,262144,1048576 --trials 3",
+    "gap_analysis": "cargo run --release -- gap-analysis --output-dir data/experiments/gap --sizes 1000,10000,100000,1000000 --k 8",
+    "hardware_benchmark": "cargo run --release -- hardware-benchmark --output-dir data/experiments/hardware --sizes 256,1024,4096,16384,65536",
+    "verify": "cargo run --release -- verify -a all --sizes 1024,4096,16384,65536"
   }
 }

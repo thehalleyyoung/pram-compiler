@@ -1,0 +1,10 @@
+{
+  "total_algorithms": 51,
+  "total_measurements": 255,
+  "avg_l1_miss_rate": 0.007734881761989802,
+  "avg_cache_bound_ratio": 0.4910319616953548,
+  "avg_hp_improvement": 1.0203014156470822,
+  "median_hp_improvement": 1.0,
+  "algorithms_within_2x_bound": 255,
+  "pct_within_2x_bound": 100.0
+}

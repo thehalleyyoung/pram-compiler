@@ -14,6 +14,7 @@ pub mod overflow_analysis;
 pub mod partition_engine;
 pub mod independence;
 pub mod adaptive;
+pub mod theorem_regime;
 
 /// Trait that all hash function implementations must satisfy.
 pub trait HashFunction {
