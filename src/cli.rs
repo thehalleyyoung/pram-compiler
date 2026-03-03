@@ -1,6 +1,8 @@
 use clap::{Parser, Subcommand};
 
 use crate::pram_ir::ast::{MemoryModel, PramProgram};
+use crate::pram_ir::parser as pram_parser;
+use crate::pram_ir::validator::{validate_program, validate_memory_accesses};
 use crate::codegen::generator::{CodeGenerator, GeneratorConfig};
 use crate::codegen::adaptive::{AdaptiveCompiler, CompilationTarget};
 use crate::algorithm_library;
@@ -19,9 +21,13 @@ pub struct Cli {
 pub enum Commands {
     /// Compile a PRAM algorithm to sequential C code
     Compile {
-        /// Algorithm name from the built-in library
+        /// Algorithm name from the built-in library (use --file for custom .pram files)
         #[arg(short, long)]
-        algorithm: String,
+        algorithm: Option<String>,
+
+        /// Path to a .pram source file to compile
+        #[arg(short, long)]
+        file: Option<String>,
 
         /// Output file path for generated C code
         #[arg(short, long, default_value = "output.c")]
@@ -46,6 +52,18 @@ pub enum Commands {
         /// Compilation target: sequential, parallel, or adaptive
         #[arg(long, default_value = "sequential")]
         target: String,
+
+        /// Output format: c (default), llvm-ir, asm
+        #[arg(long, default_value = "c")]
+        output_format: String,
+
+        /// Emit the IR as JSON to stdout (for integration with other tools)
+        #[arg(long)]
+        emit_json: bool,
+
+        /// [Experimental] Accept simplified pseudocode input instead of .pram format
+        #[arg(long)]
+        from_pseudocode: bool,
     },
 
     /// Run benchmarks on compiled algorithms
@@ -73,9 +91,35 @@ pub enum Commands {
         #[arg(short, long, default_value = "all")]
         algorithm: String,
 
+        /// Path to a .pram source file to verify
+        #[arg(short, long)]
+        file: Option<String>,
+
         /// Input sizes to verify (comma-separated)
         #[arg(long, default_value = "1000,10000")]
         sizes: String,
+    },
+
+    /// Check (parse + validate) a .pram file without compiling
+    Check {
+        /// Path to a .pram source file
+        #[arg(short, long)]
+        file: String,
+    },
+
+    /// Generate a starter .pram template file
+    Init {
+        /// Template pattern: map, reduce, scan, sort, custom
+        #[arg(short, long, default_value = "custom")]
+        pattern: String,
+
+        /// Output file path for the generated template
+        #[arg(short, long, default_value = "algorithm.pram")]
+        output: String,
+
+        /// Algorithm name for the template
+        #[arg(short, long, default_value = "my_algorithm")]
+        name: String,
     },
 
     /// List available algorithms in the library
@@ -235,9 +279,42 @@ pub fn list_algorithm_names() -> Vec<&'static str> {
     algorithm_library::catalog().iter().map(|e| e.name).collect()
 }
 
-/// Execute the compile command.
-pub fn execute_compile(
-    algorithm: &str,
+/// Load and parse a .pram file from disk, with user-friendly error messages.
+pub fn load_pram_file(path: &str) -> Result<PramProgram, String> {
+    let source = std::fs::read_to_string(path)
+        .map_err(|e| format!("Cannot read '{}': {}", path, e))?;
+
+    let program = pram_parser::parse_program(&source).map_err(|e| {
+        let lines: Vec<&str> = source.lines().collect();
+        let mut msg = format!("Parse error in '{}' at line {}:{}: {}\n", path, e.line, e.column, e.message);
+        if e.line > 0 && e.line <= lines.len() {
+            let line_text = lines[e.line - 1];
+            msg.push_str(&format!("  |\n"));
+            msg.push_str(&format!("{:>3} | {}\n", e.line, line_text));
+            if e.column > 0 {
+                msg.push_str(&format!("  | {:>width$}\n", "^", width = e.column));
+            }
+        }
+        msg
+    })?;
+
+    Ok(program)
+}
+
+/// Resolve a program from either --algorithm or --file (mutually exclusive).
+fn resolve_program(algorithm: Option<&str>, file: Option<&str>) -> Result<PramProgram, String> {
+    match (algorithm, file) {
+        (Some(_), Some(_)) => Err("Specify either --algorithm or --file, not both.".to_string()),
+        (None, None) => Err("Specify --algorithm NAME (built-in) or --file PATH (custom .pram file).".to_string()),
+        (Some(name), None) => get_algorithm(name)
+            .ok_or_else(|| format!("Unknown algorithm: '{}'. Use 'list-algorithms' to see built-in options,\nor --file to compile a custom .pram file.", name)),
+        (None, Some(path)) => load_pram_file(path),
+    }
+}
+
+/// Compile an already-resolved PramProgram (shared by --algorithm and --file paths).
+fn execute_compile_program(
+    program: &PramProgram,
     output: &str,
     _hash_family: &str,
     _cache_line_size: usize,
@@ -245,8 +322,19 @@ pub fn execute_compile(
     instrument: bool,
     target: &str,
 ) -> Result<(), String> {
-    let program = get_algorithm(algorithm)
-        .ok_or_else(|| format!("Unknown algorithm: {}. Use 'list-algorithms' to see available.", algorithm))?;
+    // Validate before compiling
+    let errors = validate_program(program);
+    let mem_issues = validate_memory_accesses(program);
+    if !errors.is_empty() || !mem_issues.is_empty() {
+        let mut msg = format!("Validation notes for '{}':\n", program.name);
+        for err in &errors {
+            msg.push_str(&format!("  - {}\n", err));
+        }
+        for issue in &mem_issues {
+            msg.push_str(&format!("  - {}\n", issue));
+        }
+        eprintln!("{}", msg);
+    }
 
     let config = GeneratorConfig {
         opt_level: opt_level as u8,
@@ -265,19 +353,280 @@ pub fn execute_compile(
     };
 
     let compiler = AdaptiveCompiler::new().with_gen_config(config);
-    let c_code = compiler.compile(&program, &compilation_target);
+    let c_code = compiler.compile(program, &compilation_target);
 
     std::fs::write(output, &c_code)
         .map_err(|e| format!("Failed to write output file '{}': {}", output, e))?;
 
     println!(
-        "Compiled '{}' ({}) -> '{}' ({} bytes, target={})",
-        algorithm,
+        "Compiled '{}' ({}) -> '{}' ({} bytes, {} lines, target={})",
+        program.name,
         program.memory_model,
         output,
         c_code.len(),
+        c_code.lines().count(),
         target,
     );
+
+    Ok(())
+}
+
+/// Execute the compile command (legacy API for tests).
+pub fn execute_compile(
+    algorithm: &str,
+    output: &str,
+    hash_family: &str,
+    cache_line_size: usize,
+    opt_level: usize,
+    instrument: bool,
+    target: &str,
+) -> Result<(), String> {
+    let program = get_algorithm(algorithm)
+        .ok_or_else(|| format!("Unknown algorithm: {}. Use 'list-algorithms' to see available.", algorithm))?;
+    execute_compile_program(&program, output, hash_family, cache_line_size, opt_level, instrument, target)
+}
+
+/// Verify cache bounds on a single PramProgram.
+fn execute_verify_program(program: &PramProgram, sizes_str: &str) -> Result<(), String> {
+    let sizes: Vec<usize> = sizes_str
+        .split(',')
+        .map(|s| s.trim().parse().map_err(|e| format!("Invalid size '{}': {}", s, e)))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    println!("Verifying bounds for '{}' across {} input sizes...", program.name, sizes.len());
+    println!("{:-<70}", "");
+
+    let mut total = 0;
+    let mut passed = 0;
+
+    for &size in &sizes {
+        total += 1;
+        use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
+        use crate::benchmark::baseline_comparison::hash_partition_trace;
+        use crate::benchmark::cache_sim::CacheSimulator;
+
+        let p = program.processor_count().unwrap_or(4);
+        let t = program.parallel_step_count().max(1);
+        let num_regions = program.body.iter()
+            .filter(|s| matches!(s, crate::pram_ir::ast::Stmt::AllocShared { .. }))
+            .count().max(1);
+        let work_bound = 4 * p * t + 10 * num_regions + 20;
+        let actual_work = program.total_stmts();
+        let work_ok = actual_work <= work_bound;
+
+        let b_elems = 8usize;
+        let theoretical_misses = 4.0 * ((p * t) as f64 / b_elems as f64 + t as f64);
+
+        let (_, trace) = hash_partition_trace(program, size);
+        let mut sim = CacheSimulator::new(64, 512);
+        sim.access_sequence(&trace);
+        let actual_misses = sim.stats().misses;
+        let cache_ok = actual_misses as f64 <= theoretical_misses || actual_misses <= (size / b_elems + 1) as u64;
+
+        if work_ok && cache_ok {
+            passed += 1;
+            println!("  PASS: {} n={} (work={}/{}, misses={}/{:.0})",
+                     program.name, size, actual_work, work_bound, actual_misses, theoretical_misses);
+        } else {
+            println!("  FAIL: {} n={} (work={}/{} {}, misses={}/{:.0} {})",
+                     program.name, size,
+                     actual_work, work_bound, if work_ok { "ok" } else { "EXCEEDED" },
+                     actual_misses, theoretical_misses,
+                     if cache_ok { "ok" } else { "EXCEEDED" });
+        }
+    }
+
+    println!("{:-<70}", "");
+    println!("Results: {}/{} passed ({:.1}%)", passed, total, 100.0 * passed as f64 / total.max(1) as f64);
+
+    Ok(())
+}
+
+/// Execute the check command: parse + validate a .pram file.
+fn execute_check(path: &str) -> Result<(), String> {
+    let source = std::fs::read_to_string(path)
+        .map_err(|e| format!("Cannot read '{}': {}", path, e))?;
+
+    let program = pram_parser::parse_program(&source).map_err(|e| {
+        let lines: Vec<&str> = source.lines().collect();
+        let mut msg = format!("Parse error at line {}:{}: {}\n", e.line, e.column, e.message);
+        if e.line > 0 && e.line <= lines.len() {
+            let line_text = lines[e.line - 1];
+            msg.push_str(&format!("  |\n"));
+            msg.push_str(&format!("{:>3} | {}\n", e.line, line_text));
+            if e.column > 0 {
+                msg.push_str(&format!("  | {:>width$}\n", "^", width = e.column));
+            }
+        }
+        msg
+    })?;
+
+    // Validate
+    let errors = validate_program(&program);
+    let mem_issues = validate_memory_accesses(&program);
+
+    println!("✓ Parsed '{}' successfully", path);
+    println!("  Algorithm:    {}", program.name);
+    println!("  Memory model: {}", program.memory_model);
+    println!("  Parameters:   {}", program.parameters.iter().map(|p| p.name.as_str()).collect::<Vec<_>>().join(", "));
+    println!("  Shared memory: {}", program.shared_memory.iter().map(|s| s.name.as_str()).collect::<Vec<_>>().join(", "));
+    println!("  Statements:   {}", program.total_stmts());
+    println!("  Parallel steps: {}", program.parallel_step_count());
+    if let Some(ref w) = program.work_bound { println!("  Work bound:   {}", w); }
+    if let Some(ref t) = program.time_bound { println!("  Time bound:   {}", t); }
+
+    if errors.is_empty() && mem_issues.is_empty() {
+        println!("  Validation:   ✓ no issues");
+    } else {
+        println!("  Validation ({} issue(s)):", errors.len() + mem_issues.len());
+        for err in &errors {
+            println!("    - {}", err);
+        }
+        for issue in &mem_issues {
+            println!("    - {}", issue);
+        }
+    }
+
+    Ok(())
+}
+
+/// Execute the init command: generate a starter .pram template.
+fn execute_init(pattern: &str, output: &str, name: &str) -> Result<(), String> {
+    let template = match pattern {
+        "map" => format!(r#"// Parallel map: apply a function to each element
+algorithm {name}(n: i64) model EREW {{
+    shared A: i64[n];
+    shared B: i64[n];
+    processors = n;
+
+    parallel_for p in 0..n {{
+        let val: i64 = shared_read(A, pid);
+        shared_write(B, pid, val * 2);
+    }}
+}}
+"#),
+        "reduce" => format!(r#"// Parallel reduction (sum)
+algorithm {name}(n: i64) model CREW {{
+    shared A: i64[n];
+    shared T: i64[n];
+    processors = n;
+
+    // Copy input to workspace
+    parallel_for p in 0..n {{
+        let val: i64 = shared_read(A, pid);
+        shared_write(T, pid, val);
+    }}
+
+    // Log-n reduction rounds
+    for s in 0..20 {{
+        parallel_for p in 0..n {{
+            if pid % (2 * s + 2) == 0 {{
+                if pid + s + 1 < n {{
+                    let a: i64 = shared_read(T, pid);
+                    let b: i64 = shared_read(T, pid + s + 1);
+                    shared_write(T, pid, a + b);
+                }}
+            }}
+        }}
+    }}
+}}
+"#),
+        "scan" => format!(r#"// Parallel prefix sum (scan)
+algorithm {name}(n: i64) model EREW {{
+    shared A: i64[n];
+    shared B: i64[n];
+    processors = n;
+
+    // Copy input
+    parallel_for p in 0..n {{
+        let val: i64 = shared_read(A, pid);
+        shared_write(B, pid, val);
+    }}
+
+    // Up-sweep
+    for d in 0..20 {{
+        parallel_for p in 0..n {{
+            let stride: i64 = 2 * (d + 1);
+            if pid % stride == stride - 1 {{
+                let a: i64 = shared_read(B, pid - d - 1);
+                let b: i64 = shared_read(B, pid);
+                shared_write(B, pid, a + b);
+            }}
+        }}
+    }}
+
+    // Down-sweep
+    for d in 0..20 {{
+        parallel_for p in 0..n {{
+            let stride: i64 = 2 * (20 - d);
+            if pid % stride == stride - 1 {{
+                if pid + stride / 2 < n {{
+                    let val: i64 = shared_read(B, pid);
+                    let cur: i64 = shared_read(B, pid + stride / 2);
+                    shared_write(B, pid + stride / 2, cur + val);
+                }}
+            }}
+        }}
+    }}
+}}
+"#),
+        "sort" => format!(r#"// Parallel odd-even transposition sort
+algorithm {name}(n: i64) model EREW {{
+    shared A: i64[n];
+    processors = n;
+
+    for phase in 0..n {{
+        parallel_for p in 0..n {{
+            // Even phase: compare (0,1), (2,3), ...
+            // Odd phase: compare (1,2), (3,4), ...
+            let offset: i64 = phase % 2;
+            let idx: i64 = pid * 2 + offset;
+            if idx + 1 < n {{
+                let a: i64 = shared_read(A, idx);
+                let b: i64 = shared_read(A, idx + 1);
+                if a > b {{
+                    shared_write(A, idx, b);
+                    shared_write(A, idx + 1, a);
+                }}
+            }}
+        }}
+    }}
+}}
+"#),
+        "custom" | _ => format!(r#"// Custom PRAM algorithm
+// Memory models: EREW, CREW, CRCW_Priority, CRCW_Arbitrary, CRCW_Common
+algorithm {name}(n: i64) model EREW {{
+    shared A: i64[n];
+    processors = n;
+
+    parallel_for p in 0..n {{
+        // Each processor p (accessed via 'pid') works on its portion.
+        // Read from shared memory:
+        let val: i64 = shared_read(A, pid);
+
+        // Compute locally (no shared memory cost):
+        let result: i64 = val + 1;
+
+        // Write to shared memory:
+        shared_write(A, pid, result);
+    }}
+
+    // Use 'barrier' between parallel_for blocks if needed.
+    // Use 'for i in 0..n {{ }}' for sequential loops.
+    // Use 'while cond {{ }}' for conditional loops.
+}}
+"#),
+    };
+
+    std::fs::write(output, &template)
+        .map_err(|e| format!("Failed to write '{}': {}", output, e))?;
+
+    println!("Created '{}' ({} pattern, {} bytes)", output, pattern, template.len());
+    println!("Next steps:");
+    println!("  1. Edit {} to implement your algorithm", output);
+    println!("  2. cargo run --release -- check --file {}", output);
+    println!("  3. cargo run --release -- compile --file {} --output my_algo.c", output);
+    println!("  4. cargo run --release -- verify --file {} --sizes 1024,16384", output);
 
     Ok(())
 }
@@ -1290,20 +1639,70 @@ pub fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
         Commands::Compile {
             algorithm,
+            file,
             output,
             hash_family,
             cache_line_size,
             opt_level,
             instrument,
             target,
-        } => execute_compile(&algorithm, &output, &hash_family, cache_line_size, opt_level, instrument, &target),
+            output_format,
+            emit_json,
+            from_pseudocode,
+        } => {
+            if from_pseudocode {
+                return Err("--from-pseudocode is experimental and not yet implemented.\n\
+                    This feature will accept simplified pseudocode and convert it to the .pram IR.\n\
+                    For now, please write algorithms using the .pram DSL format.\n\
+                    Run `pram-compiler init --pattern custom` for a starter template.".to_string());
+            }
+
+            match output_format.as_str() {
+                "c" => {}
+                "llvm-ir" => {
+                    return Err("--output-format llvm-ir is not yet supported.\n\
+                        LLVM IR emission is planned for a future release.\n\
+                        Currently only C output (--output-format c) is implemented.".to_string());
+                }
+                "asm" => {
+                    return Err("--output-format asm is not yet supported.\n\
+                        Assembly emission is planned for a future release.\n\
+                        Currently only C output (--output-format c) is implemented.".to_string());
+                }
+                other => {
+                    return Err(format!(
+                        "Unknown output format '{}'. Supported formats: c, llvm-ir, asm", other
+                    ));
+                }
+            }
+
+            let program = resolve_program(algorithm.as_deref(), file.as_deref())?;
+
+            if emit_json {
+                let json = serde_json::to_string_pretty(&program)
+                    .map_err(|e| format!("Failed to serialize IR to JSON: {}", e))?;
+                println!("{}", json);
+                return Ok(());
+            }
+
+            execute_compile_program(&program, &output, &hash_family, cache_line_size, opt_level, instrument, &target)
+        }
         Commands::Benchmark {
             algorithm,
             sizes,
             trials,
             format,
         } => execute_benchmark(&algorithm, &sizes, trials, &format),
-        Commands::Verify { algorithm, sizes } => execute_verify(&algorithm, &sizes),
+        Commands::Verify { algorithm, file, sizes } => {
+            if let Some(ref path) = file {
+                let program = load_pram_file(path)?;
+                execute_verify_program(&program, &sizes)
+            } else {
+                execute_verify(&algorithm, &sizes)
+            }
+        }
+        Commands::Check { file } => execute_check(&file),
+        Commands::Init { pattern, output, name } => execute_init(&pattern, &output, &name),
         Commands::ListAlgorithms { verbose } => {
             execute_list_algorithms(verbose);
             Ok(())

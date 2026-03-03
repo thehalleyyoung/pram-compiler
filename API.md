@@ -5,15 +5,20 @@
 All commands run via `cargo run --release --` from the project root.
 
 ### `compile`
-Compile a PRAM algorithm to C code.
+Compile a PRAM algorithm to C code. Accepts either a built-in algorithm name or a custom `.pram` file.
 
 ```bash
-cargo run --release -- compile --algorithm <NAME> [OPTIONS]
+# From a .pram file (custom algorithm):
+cargo run --release -- compile --file my_algo.pram --output my_algo.c
+
+# From the built-in library:
+cargo run --release -- compile --algorithm bitonic_sort --output sort.c
 ```
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--algorithm` | required | Algorithm name (use `list-algorithms` to see all) |
+| `--file` | — | Path to a `.pram` source file (mutually exclusive with `--algorithm`) |
+| `--algorithm` | — | Built-in algorithm name (use `list-algorithms` to see all) |
 | `--output` | `output.c` | Output file path |
 | `--target` | `sequential` | `sequential`, `parallel`, or `adaptive` |
 | `--hash-family` | `siegel` | `siegel`, `two-universal`, `murmur`, `tabulation`, `identity` |
@@ -21,14 +26,42 @@ cargo run --release -- compile --algorithm <NAME> [OPTIONS]
 | `--opt-level` | `2` | Optimization level (0-3) |
 | `--instrument` | false | Include timing instrumentation |
 
+### `check`
+Parse and validate a `.pram` file without compiling. Reports algorithm metadata and any validation issues.
+
+```bash
+cargo run --release -- check --file my_algo.pram
+```
+
+### `init`
+Generate a starter `.pram` template file for common parallel patterns.
+
+```bash
+cargo run --release -- init --pattern map --output my_map.pram
+cargo run --release -- init --pattern reduce --output my_reduce.pram
+cargo run --release -- init --pattern scan --output my_scan.pram
+cargo run --release -- init --pattern sort --output my_sort.pram
+cargo run --release -- init --pattern custom --name my_algorithm --output my_algo.pram
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--pattern` | `custom` | Template: `map`, `reduce`, `scan`, `sort`, `custom` |
+| `--output` | `algorithm.pram` | Output file path |
+| `--name` | `my_algorithm` | Algorithm name in the template |
+
 ### `list-algorithms`
 ```bash
 cargo run --release -- list-algorithms [--verbose]
 ```
 
 ### `verify`
-Verify work and cache-miss bounds via simulation.
+Verify work and cache-miss bounds via simulation. Works with both built-in algorithms and custom `.pram` files.
 ```bash
+# Verify a custom .pram file:
+cargo run --release -- verify --file my_algo.pram --sizes 1024,16384
+
+# Verify built-in algorithms:
 cargo run --release -- verify --algorithm <NAME|all> --sizes <SIZES>
 ```
 
@@ -99,6 +132,25 @@ cargo run --release -- benchmark --algorithm <NAME> --sizes <SIZES> --trials <N>
 ```
 
 ## Rust Library API
+
+### Parsing Custom .pram Files
+
+```rust
+use pram_compiler::pram_ir::parser::parse_program;
+use pram_compiler::pram_ir::validator::{validate_program, validate_memory_accesses};
+use pram_compiler::codegen::generator::{CodeGenerator, GeneratorConfig};
+
+let source = std::fs::read_to_string("my_algo.pram").unwrap();
+let program = parse_program(&source).expect("parse error");
+
+// Validate
+let errors = validate_program(&program);
+let mem_issues = validate_memory_accesses(&program);
+
+// Compile to C
+let gen = CodeGenerator::new(GeneratorConfig::default());
+let c_code = gen.generate(&program);
+```
 
 ### Core Types
 

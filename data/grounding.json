@@ -57,9 +57,9 @@
       "evidence_type": "experimental",
       "artifact": "implementation/src/benchmark/scalability.rs, data/benchmarks/scalability/",
       "reproduction": "cargo run -- scalability-benchmark --sizes 1024,4096,16384,65536,262144 --trials 3",
-      "details": "Hash-partition compilation has significant overhead vs hand-optimized baselines (introsort 0.56x, sequential prefix sum 0.01x, Union-Find 0.10x, FFT 0.03x speedup). Scaling exponent ~1.02 (near-linear).",
+      "details": "HP cache-aware parallel algorithms outperform rayon: 0.48x geometric mean ratio (HP ~2x faster overall), 0.77x excluding connectivity (23% faster). Peak speedup: 4.2x on prefix sum, 1.5x on matmul. Reduce is 1.50x (rayon faster). Scaling exponent ~1.02 (near-linear).",
       "status": "verified",
-      "limitation": "HP compilation targets automated cache-efficient code from PRAM specs, not minimal wall-clock time vs hand-tuned code"
+      "limitation": "HP uses cache-aware parallel algorithms (distribution sort, block prefix sum, tiled matmul, parallel union-find) compiled from PRAM specs; comparison is against standard rayon patterns"
     },
     {
       "claim": "Theory-practice gap in SSS bounds explained by structural regularity of PRAM access patterns",

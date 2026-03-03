@@ -1,0 +1,23 @@
+// Parallel odd-even transposition sort.
+// Demonstrates nested loops, conditionals, and compare-and-swap patterns.
+// Time: O(n) parallel steps, each with n/2 processors.
+algorithm odd_even_sort(n: i64) model EREW {
+    shared A: i64[n];
+    processors = n;
+
+    // n phases: alternate between even and odd comparisons
+    for phase in 0..n {
+        parallel_for p in 0..n {
+            let offset: i64 = phase % 2;
+            let idx: i64 = pid * 2 + offset;
+            if idx + 1 < n {
+                let a: i64 = shared_read(A, idx);
+                let b: i64 = shared_read(A, idx + 1);
+                if a > b {
+                    shared_write(A, idx, b);
+                    shared_write(A, idx + 1, a);
+                }
+            }
+        }
+    }
+}

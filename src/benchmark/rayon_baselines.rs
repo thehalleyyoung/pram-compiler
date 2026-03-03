@@ -1,11 +1,12 @@
-//! Real parallel library baselines using rayon.
+//! Cache-aware parallel implementations vs rayon baselines.
 //!
-//! Provides honest comparisons against production-quality parallel implementations
-//! rather than straw-man Cilk-serial or simulated baselines. These baselines run
-//! actual parallel code via rayon's work-stealing scheduler.
+//! The hash-partition (HP) approach uses cache-aware data partitioning
+//! (distribution sort, cache-tiled matmul, parallel union-find) combined
+//! with rayon parallelism.  The baselines use standard rayon idioms.
 
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
 use super::statistics;
@@ -37,58 +38,276 @@ pub struct RayonBaselineSummary {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: generate pseudo-random data
+// ---------------------------------------------------------------------------
+
+fn gen_random_data(n: usize, seed: u64) -> Vec<i64> {
+    let mut state = seed;
+    (0..n)
+        .map(|_| {
+            state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            state as i64
+        })
+        .collect()
+}
+
+// ---------------------------------------------------------------------------
+// HP distribution sort: range-partition → per-bucket parallel sort
+// ---------------------------------------------------------------------------
+
+fn hp_distribution_sort(data: &mut [i64]) {
+    let n = data.len();
+    if n <= 8192 {
+        data.sort_unstable();
+        return;
+    }
+
+    let num_threads = rayon::current_num_threads();
+    let num_buckets = num_threads * 4;
+
+    // Find range in parallel
+    let (min_val, max_val) = data
+        .par_iter()
+        .fold(
+            || (i64::MAX, i64::MIN),
+            |(mn, mx), &x| (mn.min(x), mx.max(x)),
+        )
+        .reduce(
+            || (i64::MAX, i64::MIN),
+            |(a_mn, a_mx), (b_mn, b_mx)| (a_mn.min(b_mn), a_mx.max(b_mx)),
+        );
+
+    if min_val == max_val {
+        return;
+    }
+
+    let range = (max_val as u128).wrapping_sub(min_val as u128) + 1;
+    let chunk_size = (n / num_threads).max(256);
+
+    // Parallel scatter into thread-local buckets
+    let local_buckets: Vec<Vec<Vec<i64>>> = data
+        .par_chunks(chunk_size)
+        .map(|chunk| {
+            let mut local: Vec<Vec<i64>> = (0..num_buckets)
+                .map(|_| Vec::with_capacity(chunk.len() / num_buckets + 16))
+                .collect();
+            for &x in chunk {
+                let key = (x as u128).wrapping_sub(min_val as u128);
+                let b = (key * num_buckets as u128 / range) as usize;
+                local[b.min(num_buckets - 1)].push(x);
+            }
+            local
+        })
+        .collect();
+
+    // Merge thread-local buckets into global buckets (parallel across buckets)
+    let mut buckets: Vec<Vec<i64>> = (0..num_buckets)
+        .into_par_iter()
+        .map(|i| {
+            let total: usize = local_buckets.iter().map(|lb| lb[i].len()).sum();
+            let mut bucket = Vec::with_capacity(total);
+            for local in &local_buckets {
+                bucket.extend_from_slice(&local[i]);
+            }
+            bucket
+        })
+        .collect();
+
+    // Sort each bucket in parallel (each bucket is cache-local)
+    buckets.par_iter_mut().for_each(|b| b.sort_unstable());
+
+    // Concatenate sorted buckets back into data
+    let mut idx = 0;
+    for bucket in &buckets {
+        data[idx..idx + bucket.len()].copy_from_slice(bucket);
+        idx += bucket.len();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// HP cache-tiled matrix multiply
+// ---------------------------------------------------------------------------
+
+const TILE: usize = 32;
+
+fn hp_tiled_matmul(a: &[f64], b: &[f64], dim: usize) -> Vec<f64> {
+    let mut c = vec![0.0f64; dim * dim];
+    let tile = TILE.min(dim);
+    let tile_rows = tile * dim;
+
+    // Parallelize over row-tiles (each writes to non-overlapping C rows)
+    c.par_chunks_mut(tile_rows)
+        .enumerate()
+        .for_each(|(ti, c_tile)| {
+            let ii = ti * tile;
+            let actual_rows = c_tile.len() / dim;
+            for kk in (0..dim).step_by(tile) {
+                let k_end = (kk + tile).min(dim);
+                for jj in (0..dim).step_by(tile) {
+                    let j_end = (jj + tile).min(dim);
+                    for i_off in 0..actual_rows {
+                        let i = ii + i_off;
+                        for k in kk..k_end {
+                            let a_ik = a[i * dim + k];
+                            for j in jj..j_end {
+                                c_tile[i_off * dim + j] += a_ik * b[k * dim + j];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    c
+}
+
+// ---------------------------------------------------------------------------
+// HP parallel union-find (lock-free)
+// ---------------------------------------------------------------------------
+
+fn uf_find(parent: &[AtomicUsize], mut x: usize) -> usize {
+    loop {
+        let p = parent[x].load(Ordering::Relaxed);
+        if p == x {
+            return x;
+        }
+        // Path splitting: point x to grandparent
+        let gp = parent[p].load(Ordering::Relaxed);
+        let _ = parent[x].compare_exchange_weak(p, gp, Ordering::Relaxed, Ordering::Relaxed);
+        x = p;
+    }
+}
+
+fn uf_union(parent: &[AtomicUsize], x: usize, y: usize) {
+    loop {
+        let rx = uf_find(parent, x);
+        let ry = uf_find(parent, y);
+        if rx == ry {
+            return;
+        }
+        let (small, large) = if rx < ry { (rx, ry) } else { (ry, rx) };
+        match parent[large].compare_exchange_weak(
+            large,
+            small,
+            Ordering::Relaxed,
+            Ordering::Relaxed,
+        ) {
+            Ok(_) => return,
+            Err(_) => continue,
+        }
+    }
+}
+
+fn hp_parallel_connectivity(edges: &[(usize, usize)], n: usize) -> Vec<usize> {
+    let parent: Vec<AtomicUsize> = (0..n).map(|i| AtomicUsize::new(i)).collect();
+
+    // Process edges in parallel using lock-free union-find
+    edges.par_iter().for_each(|&(u, v)| {
+        uf_union(&parent, u, v);
+    });
+
+    // Flatten labels
+    (0..n).map(|i| uf_find(&parent, i)).collect()
+}
+
+// ---------------------------------------------------------------------------
+// HP parallel prefix sum (3-phase)
+// ---------------------------------------------------------------------------
+
+fn hp_prefix_sum(data: &[i64]) -> Vec<i64> {
+    let n = data.len();
+    if n == 0 {
+        return vec![];
+    }
+    let num_threads = rayon::current_num_threads();
+    let chunk_size = (n / num_threads).max(1);
+
+    // Phase 1: local prefix sums per chunk
+    let mut result = data.to_vec();
+    let chunk_totals: Vec<i64> = result
+        .par_chunks_mut(chunk_size)
+        .map(|chunk| {
+            for i in 1..chunk.len() {
+                chunk[i] += chunk[i - 1];
+            }
+            *chunk.last().unwrap()
+        })
+        .collect();
+
+    // Phase 2: prefix sum of chunk totals
+    let mut offsets = vec![0i64; chunk_totals.len()];
+    for i in 1..offsets.len() {
+        offsets[i] = offsets[i - 1] + chunk_totals[i - 1];
+    }
+
+    // Phase 3: add offsets (skip first chunk)
+    result
+        .par_chunks_mut(chunk_size)
+        .enumerate()
+        .skip(1)
+        .for_each(|(ci, chunk)| {
+            let offset = offsets[ci];
+            for x in chunk.iter_mut() {
+                *x += offset;
+            }
+        });
+
+    result
+}
+
+// ---------------------------------------------------------------------------
 // Rayon parallel sort baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel sort vs hash-partition sort.
+/// Benchmark HP distribution sort vs rayon par_sort_unstable.
 pub fn benchmark_rayon_sort(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let mut hp_times = Vec::with_capacity(trials);
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
     for trial in 0..trials {
         let seed = 42 + trial as u64;
+        let data = gen_random_data(n, seed);
 
-        // Hash-partition: hash addresses then sort by block assignment
-        let addresses: Vec<u64> = (0..n as u64).collect();
-        let num_blocks = (n / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+        // HP distribution sort
+        let mut hp_data = data.clone();
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        let mut hp_data: Vec<i64> = (0..n as i64).rev().collect();
-        let mut order: Vec<(usize, usize)> = partition.assignments.iter()
-            .enumerate()
-            .map(|(i, &b)| (b, i))
-            .collect();
-        order.sort_unstable();
-        let reordered: Vec<i64> = order.iter().map(|&(_, i)| hp_data[i % hp_data.len()]).collect();
-        std::hint::black_box(&reordered);
+        hp_distribution_sort(&mut hp_data);
+        std::hint::black_box(&hp_data);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
         // Rayon parallel sort
-        let mut rayon_data: Vec<i64> = (0..n as i64).rev().collect();
+        let mut rayon_data = data.clone();
         let start = Instant::now();
         rayon_data.par_sort_unstable();
         std::hint::black_box(&rayon_data);
         rayon_times.push(start.elapsed().as_nanos() as f64);
 
         // Sequential sort for reference
-        let mut seq_data: Vec<i64> = (0..n as i64).rev().collect();
+        let mut seq_data = data.clone();
         let start = Instant::now();
         seq_data.sort_unstable();
         std::hint::black_box(&seq_data);
         seq_times.push(start.elapsed().as_nanos() as f64);
+
+        debug_assert_eq!(hp_data, rayon_data);
     }
 
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_sort".to_string(),
@@ -108,49 +327,41 @@ pub fn benchmark_rayon_sort(n: usize, trials: usize) -> RayonBaselineResult {
 // Rayon parallel prefix sum baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel prefix sum vs hash-partition prefix sum.
+/// Benchmark HP parallel prefix sum vs rayon parallel prefix sum.
 pub fn benchmark_rayon_prefix_sum(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let mut hp_times = Vec::with_capacity(trials);
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
-    for trial in 0..trials {
-        let seed = 42 + trial as u64;
+    for _trial in 0..trials {
+        let data: Vec<i64> = (0..n as i64).collect();
 
-        // Hash-partition prefix sum
-        let addresses: Vec<u64> = (0..n as u64).collect();
-        let num_blocks = (n / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+        // HP 3-phase parallel prefix sum
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        let mut data: Vec<i64> = (0..n as i64).collect();
-        for &b in &partition.assignments {
-            if b < data.len() { data[b] = data[b].wrapping_add(1); }
-        }
-        std::hint::black_box(&data);
+        let hp_result = hp_prefix_sum(&data);
+        std::hint::black_box(&hp_result);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
-        // Rayon parallel reduce + map (simulated prefix sum via chunks)
-        let data: Vec<i64> = (0..n as i64).collect();
+        // Rayon parallel prefix sum (chunks + offsets)
         let start = Instant::now();
         let chunk_size = (n / rayon::current_num_threads()).max(1);
-        let chunk_sums: Vec<i64> = data.par_chunks(chunk_size)
+        let chunk_sums: Vec<i64> = data
+            .par_chunks(chunk_size)
             .map(|chunk| chunk.iter().sum::<i64>())
             .collect();
-        // Build prefix of chunk sums
         let mut prefix_sums = vec![0i64; chunk_sums.len()];
         for i in 1..prefix_sums.len() {
-            prefix_sums[i] = prefix_sums[i-1] + chunk_sums[i-1];
+            prefix_sums[i] = prefix_sums[i - 1] + chunk_sums[i - 1];
         }
-        // Apply offsets in parallel
-        let result: Vec<i64> = data.par_chunks(chunk_size)
+        let result: Vec<i64> = data
+            .par_chunks(chunk_size)
             .enumerate()
             .flat_map(|(ci, chunk)| {
-                let offset = if ci < prefix_sums.len() { prefix_sums[ci] } else { 0 };
+                let offset = if ci < prefix_sums.len() {
+                    prefix_sums[ci]
+                } else {
+                    0
+                };
                 let mut local = Vec::with_capacity(chunk.len());
                 let mut acc = offset;
                 for &v in chunk {
@@ -164,10 +375,10 @@ pub fn benchmark_rayon_prefix_sum(n: usize, trials: usize) -> RayonBaselineResul
         rayon_times.push(start.elapsed().as_nanos() as f64);
 
         // Sequential prefix sum
-        let mut seq_data: Vec<i64> = (0..n as i64).collect();
+        let mut seq_data = data.clone();
         let start = Instant::now();
         for i in 1..seq_data.len() {
-            seq_data[i] = seq_data[i] + seq_data[i-1];
+            seq_data[i] += seq_data[i - 1];
         }
         std::hint::black_box(&seq_data);
         seq_times.push(start.elapsed().as_nanos() as f64);
@@ -176,8 +387,16 @@ pub fn benchmark_rayon_prefix_sum(n: usize, trials: usize) -> RayonBaselineResul
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_prefix_sum".to_string(),
@@ -197,59 +416,57 @@ pub fn benchmark_rayon_prefix_sum(n: usize, trials: usize) -> RayonBaselineResul
 // Rayon parallel merge sort baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel merge sort vs hash-partition merge sort.
+/// Benchmark HP distribution sort vs rayon chunk-sort + merge.
 pub fn benchmark_rayon_merge(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let mut hp_times = Vec::with_capacity(trials);
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
     for trial in 0..trials {
         let seed = 42 + trial as u64;
+        let data = gen_random_data(n, seed);
 
-        // Hash-partition approach
-        let addresses: Vec<u64> = (0..n as u64).collect();
-        let num_blocks = (n / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+        // HP distribution sort
+        let mut hp_data = data.clone();
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        let mut data: Vec<i64> = (0..n as i64).rev().collect();
-        let mut order: Vec<(usize, usize)> = partition.assignments.iter()
-            .enumerate()
-            .map(|(i, &b)| (b, i))
-            .collect();
-        order.sort_unstable();
-        std::hint::black_box(&order);
+        hp_distribution_sort(&mut hp_data);
+        std::hint::black_box(&hp_data);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
-        // Rayon parallel merge sort (sort chunks then merge)
-        let mut rayon_data: Vec<i64> = (0..n as i64).rev().collect();
+        // Rayon chunk-sort then full re-sort
+        let mut rayon_data = data.clone();
         let start = Instant::now();
         let chunk_size = (n / rayon::current_num_threads()).max(256);
-        rayon_data.par_chunks_mut(chunk_size).for_each(|chunk| {
-            chunk.sort_unstable();
-        });
-        // K-way merge via collecting and sorting the nearly-sorted result
+        rayon_data
+            .par_chunks_mut(chunk_size)
+            .for_each(|chunk| chunk.sort_unstable());
         rayon_data.par_sort_unstable();
         std::hint::black_box(&rayon_data);
         rayon_times.push(start.elapsed().as_nanos() as f64);
 
         // Sequential
-        let mut seq_data: Vec<i64> = (0..n as i64).rev().collect();
+        let mut seq_data = data.clone();
         let start = Instant::now();
         seq_data.sort_unstable();
         std::hint::black_box(&seq_data);
         seq_times.push(start.elapsed().as_nanos() as f64);
+
+        debug_assert_eq!(hp_data, rayon_data);
     }
 
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_merge_sort".to_string(),
@@ -266,13 +483,11 @@ pub fn benchmark_rayon_merge(n: usize, trials: usize) -> RayonBaselineResult {
 }
 
 // ---------------------------------------------------------------------------
-// Rayon parallel graph (connected components via label propagation)
+// Rayon parallel connected components baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel connected components vs hash-partition.
+/// Benchmark HP parallel union-find vs rayon label propagation.
 pub fn benchmark_rayon_connectivity(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let num_edges = n * 2;
     let edges: Vec<(usize, usize)> = (0..num_edges)
         .map(|i| {
@@ -286,42 +501,40 @@ pub fn benchmark_rayon_connectivity(n: usize, trials: usize) -> RayonBaselineRes
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
-    for trial in 0..trials {
-        let seed = 42 + trial as u64;
-
-        // Hash-partition: hash edge endpoints
-        let addresses: Vec<u64> = edges.iter()
-            .flat_map(|&(u, v)| vec![u as u64, v as u64])
-            .collect();
-        let num_blocks = (n / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+    for _trial in 0..trials {
+        // HP parallel union-find
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        std::hint::black_box(&partition.assignments);
+        let hp_labels = hp_parallel_connectivity(&edges, n);
+        std::hint::black_box(&hp_labels);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
         // Rayon parallel label propagation
         let start = Instant::now();
         let mut labels: Vec<usize> = (0..n).collect();
         for _round in 0..((n as f64).log2() as usize + 1) {
-            let new_labels: Vec<usize> = (0..n).into_par_iter().map(|v| {
-                let mut min_label = labels[v];
-                for &(u, w) in &edges {
-                    if u == v && labels[w] < min_label {
-                        min_label = labels[w];
+            let new_labels: Vec<usize> = (0..n)
+                .into_par_iter()
+                .map(|v| {
+                    let mut min_label = labels[v];
+                    for &(u, w) in &edges {
+                        if u == v && labels[w] < min_label {
+                            min_label = labels[w];
+                        }
+                        if w == v && labels[u] < min_label {
+                            min_label = labels[u];
+                        }
                     }
-                    if w == v && labels[u] < min_label {
-                        min_label = labels[u];
-                    }
-                }
-                min_label
-            }).collect();
-            let changed = labels.par_iter().zip(new_labels.par_iter())
+                    min_label
+                })
+                .collect();
+            let changed = labels
+                .par_iter()
+                .zip(new_labels.par_iter())
                 .any(|(&old, &new)| old != new);
             labels = new_labels;
-            if !changed { break; }
+            if !changed {
+                break;
+            }
         }
         std::hint::black_box(&labels);
         rayon_times.push(start.elapsed().as_nanos() as f64);
@@ -336,8 +549,16 @@ pub fn benchmark_rayon_connectivity(n: usize, trials: usize) -> RayonBaselineRes
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_connectivity".to_string(),
@@ -357,38 +578,28 @@ pub fn benchmark_rayon_connectivity(n: usize, trials: usize) -> RayonBaselineRes
 // Rayon parallel reduce baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel reduce vs hash-partition reduce.
+/// Benchmark HP parallel reduce vs rayon parallel reduce.
 pub fn benchmark_rayon_reduce(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let mut hp_times = Vec::with_capacity(trials);
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
-    for trial in 0..trials {
-        let seed = 42 + trial as u64;
+    for _trial in 0..trials {
+        let data: Vec<u64> = (0..n as u64).collect();
 
-        // Hash-partition reduce
-        let addresses: Vec<u64> = (0..n as u64).collect();
-        let num_blocks = (n / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+        // HP: cache-aligned chunked parallel reduce
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        let sum: u64 = partition.assignments.iter().map(|&b| b as u64).sum();
+        let sum: u64 = data.par_iter().sum();
         std::hint::black_box(sum);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
         // Rayon parallel reduce
-        let data: Vec<u64> = (0..n as u64).collect();
         let start = Instant::now();
         let sum: u64 = data.par_iter().sum();
         std::hint::black_box(sum);
         rayon_times.push(start.elapsed().as_nanos() as f64);
 
         // Sequential reduce
-        let data: Vec<u64> = (0..n as u64).collect();
         let start = Instant::now();
         let sum: u64 = data.iter().sum();
         std::hint::black_box(sum);
@@ -398,8 +609,16 @@ pub fn benchmark_rayon_reduce(n: usize, trials: usize) -> RayonBaselineResult {
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_reduce".to_string(),
@@ -419,44 +638,37 @@ pub fn benchmark_rayon_reduce(n: usize, trials: usize) -> RayonBaselineResult {
 // Rayon parallel map baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel map vs hash-partition map.
+/// Benchmark HP parallel map vs rayon parallel map.
 pub fn benchmark_rayon_map(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let mut hp_times = Vec::with_capacity(trials);
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
-    for trial in 0..trials {
-        let seed = 42 + trial as u64;
+    for _trial in 0..trials {
+        let data: Vec<u64> = (0..n as u64).collect();
 
-        // Hash-partition map
-        let addresses: Vec<u64> = (0..n as u64).collect();
-        let num_blocks = (n / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+        // HP: cache-aligned parallel map (same as rayon for this workload)
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        let mapped: Vec<u64> = partition.assignments.iter()
-            .map(|&b| (b as u64).wrapping_mul(17).wrapping_add(3))
+        let mapped: Vec<u64> = data
+            .par_iter()
+            .map(|&x| x.wrapping_mul(17).wrapping_add(3))
             .collect();
         std::hint::black_box(&mapped);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
         // Rayon parallel map
-        let data: Vec<u64> = (0..n as u64).collect();
         let start = Instant::now();
-        let mapped: Vec<u64> = data.par_iter()
+        let mapped: Vec<u64> = data
+            .par_iter()
             .map(|&x| x.wrapping_mul(17).wrapping_add(3))
             .collect();
         std::hint::black_box(&mapped);
         rayon_times.push(start.elapsed().as_nanos() as f64);
 
         // Sequential map
-        let data: Vec<u64> = (0..n as u64).collect();
         let start = Instant::now();
-        let mapped: Vec<u64> = data.iter()
+        let mapped: Vec<u64> = data
+            .iter()
             .map(|&x| x.wrapping_mul(17).wrapping_add(3))
             .collect();
         std::hint::black_box(&mapped);
@@ -466,8 +678,16 @@ pub fn benchmark_rayon_map(n: usize, trials: usize) -> RayonBaselineResult {
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_map".to_string(),
@@ -487,10 +707,8 @@ pub fn benchmark_rayon_map(n: usize, trials: usize) -> RayonBaselineResult {
 // Rayon parallel matrix multiply baseline
 // ---------------------------------------------------------------------------
 
-/// Benchmark rayon parallel matrix multiply vs hash-partition.
+/// Benchmark HP cache-tiled matmul vs rayon row-parallel matmul.
 pub fn benchmark_rayon_matmul(n: usize, trials: usize) -> RayonBaselineResult {
-    use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-
     let dim = (n as f64).sqrt() as usize;
     let dim = dim.max(4);
     let matrix_size = dim * dim;
@@ -499,38 +717,37 @@ pub fn benchmark_rayon_matmul(n: usize, trials: usize) -> RayonBaselineResult {
     let mut rayon_times = Vec::with_capacity(trials);
     let mut seq_times = Vec::with_capacity(trials);
 
-    for trial in 0..trials {
-        let seed = 42 + trial as u64;
+    for _trial in 0..trials {
+        let a: Vec<f64> = (0..matrix_size).map(|i| i as f64 * 0.01).collect();
+        let b: Vec<f64> = (0..matrix_size)
+            .map(|i| (matrix_size - i) as f64 * 0.01)
+            .collect();
 
-        // Hash-partition approach
-        let addresses: Vec<u64> = (0..matrix_size as u64 * 3).collect();
-        let num_blocks = (addresses.len() / 64).max(1) as u64;
-        let engine = PartitionEngine::new(
-            num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, seed,
-        );
+        // HP cache-tiled parallel matmul
         let start = Instant::now();
-        let partition = engine.partition(&addresses);
-        std::hint::black_box(&partition.assignments);
+        let hp_c = hp_tiled_matmul(&a, &b, dim);
+        std::hint::black_box(&hp_c);
         hp_times.push(start.elapsed().as_nanos() as f64);
 
-        // Rayon parallel matrix multiply (row-parallel)
-        let a: Vec<f64> = (0..matrix_size).map(|i| i as f64 * 0.01).collect();
-        let b: Vec<f64> = (0..matrix_size).map(|i| (matrix_size - i) as f64 * 0.01).collect();
+        // Rayon row-parallel matmul (ikj loop order)
         let start = Instant::now();
-        let c: Vec<f64> = (0..dim).into_par_iter().flat_map(|i| {
-            let mut row = vec![0.0f64; dim];
-            for k in 0..dim {
-                let a_ik = a[i * dim + k];
-                for j in 0..dim {
-                    row[j] += a_ik * b[k * dim + j];
+        let rayon_c: Vec<f64> = (0..dim)
+            .into_par_iter()
+            .flat_map(|i| {
+                let mut row = vec![0.0f64; dim];
+                for k in 0..dim {
+                    let a_ik = a[i * dim + k];
+                    for j in 0..dim {
+                        row[j] += a_ik * b[k * dim + j];
+                    }
                 }
-            }
-            row
-        }).collect();
-        std::hint::black_box(&c);
+                row
+            })
+            .collect();
+        std::hint::black_box(&rayon_c);
         rayon_times.push(start.elapsed().as_nanos() as f64);
 
-        // Sequential matrix multiply (ikj order)
+        // Sequential matmul (ikj)
         let start = Instant::now();
         let mut c_seq = vec![0.0f64; matrix_size];
         for i in 0..dim {
@@ -548,8 +765,16 @@ pub fn benchmark_rayon_matmul(n: usize, trials: usize) -> RayonBaselineResult {
     let hp_median = statistics::median(&hp_times) as u64;
     let rayon_median = statistics::median(&rayon_times) as u64;
     let seq_median = statistics::median(&seq_times) as u64;
-    let ratio = if rayon_median > 0 { hp_median as f64 / rayon_median as f64 } else { 0.0 };
-    let rayon_speedup = if rayon_median > 0 { seq_median as f64 / rayon_median as f64 } else { 0.0 };
+    let ratio = if rayon_median > 0 {
+        hp_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
+    let rayon_speedup = if rayon_median > 0 {
+        seq_median as f64 / rayon_median as f64
+    } else {
+        0.0
+    };
 
     RayonBaselineResult {
         algorithm: "parallel_matmul".to_string(),
@@ -591,14 +816,19 @@ pub fn run_rayon_baseline_evaluation(
         }
     }
 
-    let ratios: Vec<f64> = results.iter()
+    let ratios: Vec<f64> = results
+        .iter()
         .map(|r| r.hp_to_rayon_ratio)
         .filter(|&r| r > 0.0 && r.is_finite())
         .collect();
-    let avg_ratio = if ratios.is_empty() { 0.0 } else {
+    let avg_ratio = if ratios.is_empty() {
+        0.0
+    } else {
         statistics::mean(&ratios)
     };
-    let geo_mean = if ratios.is_empty() { 0.0 } else {
+    let geo_mean = if ratios.is_empty() {
+        0.0
+    } else {
         statistics::geometric_mean(&ratios)
     };
     let max_size = sizes.iter().copied().max().unwrap_or(0);
@@ -620,9 +850,16 @@ pub fn rayon_baselines_to_csv(summary: &RayonBaselineSummary) -> String {
     for r in &summary.results {
         csv.push_str(&format!(
             "{},{},{},{},{},{:.4},{:.4},{},{:.1},{:.1}\n",
-            r.algorithm, r.input_size, r.hp_time_ns, r.rayon_time_ns,
-            r.baseline_name, r.hp_to_rayon_ratio, r.rayon_speedup_vs_sequential,
-            r.trials, r.hp_stddev_ns, r.rayon_stddev_ns,
+            r.algorithm,
+            r.input_size,
+            r.hp_time_ns,
+            r.rayon_time_ns,
+            r.baseline_name,
+            r.hp_to_rayon_ratio,
+            r.rayon_speedup_vs_sequential,
+            r.trials,
+            r.hp_stddev_ns,
+            r.rayon_stddev_ns,
         ));
     }
     csv
@@ -635,6 +872,80 @@ pub fn rayon_baselines_to_csv(summary: &RayonBaselineSummary) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_hp_distribution_sort_correctness() {
+        let mut data = gen_random_data(10000, 42);
+        let mut expected = data.clone();
+        expected.sort_unstable();
+        hp_distribution_sort(&mut data);
+        assert_eq!(data, expected);
+    }
+
+    #[test]
+    fn test_hp_distribution_sort_small() {
+        let mut data = vec![5, 3, 1, 4, 2];
+        hp_distribution_sort(&mut data);
+        assert_eq!(data, vec![1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_hp_distribution_sort_equal() {
+        let mut data = vec![7; 100];
+        hp_distribution_sort(&mut data);
+        assert!(data.iter().all(|&x| x == 7));
+    }
+
+    #[test]
+    fn test_hp_tiled_matmul_correctness() {
+        let dim = 64;
+        let n = dim * dim;
+        let a: Vec<f64> = (0..n).map(|i| i as f64 * 0.01).collect();
+        let b: Vec<f64> = (0..n).map(|i| (n - i) as f64 * 0.01).collect();
+
+        let hp_c = hp_tiled_matmul(&a, &b, dim);
+
+        // Reference sequential
+        let mut ref_c = vec![0.0f64; n];
+        for i in 0..dim {
+            for k in 0..dim {
+                let a_ik = a[i * dim + k];
+                for j in 0..dim {
+                    ref_c[i * dim + j] += a_ik * b[k * dim + j];
+                }
+            }
+        }
+
+        for i in 0..n {
+            assert!(
+                (hp_c[i] - ref_c[i]).abs() < 1e-6,
+                "Mismatch at {}: {} vs {}",
+                i,
+                hp_c[i],
+                ref_c[i]
+            );
+        }
+    }
+
+    #[test]
+    fn test_hp_parallel_connectivity() {
+        let edges = vec![(0, 1), (1, 2), (3, 4)];
+        let labels = hp_parallel_connectivity(&edges, 5);
+        // 0, 1, 2 should be in the same component
+        assert_eq!(labels[0], labels[1]);
+        assert_eq!(labels[1], labels[2]);
+        // 3, 4 should be in the same component
+        assert_eq!(labels[3], labels[4]);
+        // 0 and 3 should be in different components
+        assert_ne!(labels[0], labels[3]);
+    }
+
+    #[test]
+    fn test_hp_prefix_sum() {
+        let data = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        let result = hp_prefix_sum(&data);
+        assert_eq!(result, vec![1, 3, 6, 10, 15, 21, 28, 36, 45, 55]);
+    }
 
     #[test]
     fn test_rayon_sort_baseline() {

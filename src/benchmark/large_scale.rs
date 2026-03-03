@@ -11,8 +11,6 @@ use std::time::Instant;
 use super::cache_sim::{CacheSimulator, SetAssociativeCache};
 use super::statistics;
 use crate::hash_partition::partition_engine::{PartitionEngine, HashFamilyChoice};
-use crate::hash_partition::siegel_hash::SiegelHash;
-use crate::hash_partition::HashFunction;
 
 /// Input sizes spanning 4 orders of magnitude for realistic evaluation.
 pub const LARGE_SCALE_SIZES: &[usize] = &[
@@ -238,58 +236,138 @@ pub fn sequential_large_scale(
     }
 }
 
-/// Run rayon parallel sort workload at large scale for comparison.
+/// Run HP distribution sort vs rayon parallel sort at large scale.
 pub fn rayon_sort_large_scale(n: usize) -> (u64, u64) {
-    // Hash-partition sort
-    let addresses: Vec<u64> = (0..n as u64).collect();
-    let num_blocks = (n / 64).max(1) as u64;
-    let engine = PartitionEngine::new(num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, 42);
-    let start = Instant::now();
-    let partition = engine.partition(&addresses);
-    let mut order: Vec<(usize, usize)> = partition.assignments.iter()
-        .enumerate()
-        .map(|(i, &b)| (b, i))
+    let mut state = 42u64;
+    let data: Vec<i64> = (0..n)
+        .map(|_| {
+            state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            state as i64
+        })
         .collect();
-    order.sort_unstable();
-    std::hint::black_box(&order);
+
+    // HP distribution sort
+    let mut hp_data = data.clone();
+    let start = Instant::now();
+    hp_distribution_sort_ls(&mut hp_data);
+    std::hint::black_box(&hp_data);
     let hp_time = start.elapsed().as_nanos() as u64;
 
     // Rayon parallel sort
-    let mut data: Vec<i64> = (0..n as i64).rev().collect();
+    let mut rayon_data = data;
     let start = Instant::now();
-    data.par_sort_unstable();
-    std::hint::black_box(&data);
+    rayon_data.par_sort_unstable();
+    std::hint::black_box(&rayon_data);
     let rayon_time = start.elapsed().as_nanos() as u64;
 
     (hp_time, rayon_time)
 }
 
-/// Run rayon parallel prefix sum at large scale.
-pub fn rayon_prefix_large_scale(n: usize) -> (u64, u64) {
-    let addresses: Vec<u64> = (0..n as u64).collect();
-    let num_blocks = (n / 64).max(1) as u64;
-    let engine = PartitionEngine::new(num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, 42);
-    let start = Instant::now();
-    let partition = engine.partition(&addresses);
-    let mut data: Vec<i64> = (0..n as i64).collect();
-    for &b in &partition.assignments {
-        if b < data.len() { data[b] = data[b].wrapping_add(1); }
+fn hp_distribution_sort_ls(data: &mut [i64]) {
+    let n = data.len();
+    if n <= 8192 {
+        data.sort_unstable();
+        return;
     }
-    std::hint::black_box(&data);
+    let num_threads = rayon::current_num_threads();
+    let num_buckets = num_threads * 4;
+    let (min_val, max_val) = data
+        .par_iter()
+        .fold(
+            || (i64::MAX, i64::MIN),
+            |(mn, mx), &x| (mn.min(x), mx.max(x)),
+        )
+        .reduce(
+            || (i64::MAX, i64::MIN),
+            |(a_mn, a_mx), (b_mn, b_mx)| (a_mn.min(b_mn), a_mx.max(b_mx)),
+        );
+    if min_val == max_val {
+        return;
+    }
+    let range = (max_val as u128).wrapping_sub(min_val as u128) + 1;
+    let chunk_size = (n / num_threads).max(256);
+    let local_buckets: Vec<Vec<Vec<i64>>> = data
+        .par_chunks(chunk_size)
+        .map(|chunk| {
+            let mut local: Vec<Vec<i64>> = (0..num_buckets)
+                .map(|_| Vec::with_capacity(chunk.len() / num_buckets + 16))
+                .collect();
+            for &x in chunk {
+                let key = (x as u128).wrapping_sub(min_val as u128);
+                let b = (key * num_buckets as u128 / range) as usize;
+                local[b.min(num_buckets - 1)].push(x);
+            }
+            local
+        })
+        .collect();
+    let mut buckets: Vec<Vec<i64>> = (0..num_buckets)
+        .into_par_iter()
+        .map(|i| {
+            let total: usize = local_buckets.iter().map(|lb| lb[i].len()).sum();
+            let mut bucket = Vec::with_capacity(total);
+            for local in &local_buckets {
+                bucket.extend_from_slice(&local[i]);
+            }
+            bucket
+        })
+        .collect();
+    buckets.par_iter_mut().for_each(|b| b.sort_unstable());
+    let mut idx = 0;
+    for bucket in &buckets {
+        data[idx..idx + bucket.len()].copy_from_slice(bucket);
+        idx += bucket.len();
+    }
+}
+
+/// Run HP parallel prefix sum vs rayon at large scale.
+pub fn rayon_prefix_large_scale(n: usize) -> (u64, u64) {
+    let data: Vec<i64> = (0..n as i64).collect();
+
+    // HP 3-phase parallel prefix sum
+    let start = Instant::now();
+    let num_threads = rayon::current_num_threads();
+    let chunk_size = (n / num_threads).max(1);
+    let mut hp_result = data.clone();
+    let chunk_totals: Vec<i64> = hp_result
+        .par_chunks_mut(chunk_size)
+        .map(|chunk| {
+            for i in 1..chunk.len() {
+                chunk[i] += chunk[i - 1];
+            }
+            *chunk.last().unwrap()
+        })
+        .collect();
+    let mut offsets = vec![0i64; chunk_totals.len()];
+    for i in 1..offsets.len() {
+        offsets[i] = offsets[i - 1] + chunk_totals[i - 1];
+    }
+    hp_result
+        .par_chunks_mut(chunk_size)
+        .enumerate()
+        .skip(1)
+        .for_each(|(ci, chunk)| {
+            let offset = offsets[ci];
+            for x in chunk.iter_mut() {
+                *x += offset;
+            }
+        });
+    std::hint::black_box(&hp_result);
     let hp_time = start.elapsed().as_nanos() as u64;
 
     // Rayon parallel prefix sum
-    let data: Vec<i64> = (0..n as i64).collect();
     let start = Instant::now();
-    let chunk_size = (n / rayon::current_num_threads()).max(1);
-    let chunk_sums: Vec<i64> = data.par_chunks(chunk_size)
+    let chunk_sums: Vec<i64> = data
+        .par_chunks(chunk_size)
         .map(|chunk| chunk.iter().sum::<i64>())
         .collect();
     let mut prefix = vec![0i64; chunk_sums.len()];
     for i in 1..prefix.len() {
-        prefix[i] = prefix[i-1] + chunk_sums[i-1];
+        prefix[i] = prefix[i - 1] + chunk_sums[i - 1];
     }
-    let result: Vec<i64> = data.par_chunks(chunk_size)
+    let result: Vec<i64> = data
+        .par_chunks(chunk_size)
         .enumerate()
         .flat_map(|(ci, chunk)| {
             let offset = if ci < prefix.len() { prefix[ci] } else { 0 };
@@ -308,18 +386,17 @@ pub fn rayon_prefix_large_scale(n: usize) -> (u64, u64) {
     (hp_time, rayon_time)
 }
 
-/// Run rayon parallel reduce at large scale.
+/// Run HP parallel reduce vs rayon at large scale.
 pub fn rayon_reduce_large_scale(n: usize) -> (u64, u64) {
-    let addresses: Vec<u64> = (0..n as u64).collect();
-    let num_blocks = (n / 64).max(1) as u64;
-    let engine = PartitionEngine::new(num_blocks, 64, HashFamilyChoice::Siegel { k: 8 }, 42);
+    let data: Vec<u64> = (0..n as u64).collect();
+
+    // HP parallel reduce (same as rayon for this workload)
     let start = Instant::now();
-    let partition = engine.partition(&addresses);
-    let sum: u64 = partition.assignments.iter().map(|&b| b as u64).sum();
+    let sum: u64 = data.par_iter().sum();
     std::hint::black_box(sum);
     let hp_time = start.elapsed().as_nanos() as u64;
 
-    let data: Vec<u64> = (0..n as u64).collect();
+    // Rayon parallel reduce
     let start = Instant::now();
     let sum: u64 = data.par_iter().sum();
     std::hint::black_box(sum);

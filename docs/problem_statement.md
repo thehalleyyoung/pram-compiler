@@ -114,4 +114,4 @@ Hand-optimized baselines are defined as the best known sequential algorithm for 
 
 ---
 
-`pram-hash-sim-compiler`
+`pram-compiler`

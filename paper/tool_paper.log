@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  2 MAR 2026 06:46
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  2 MAR 2026 10:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -586,23 +586,22 @@ LaTeX Warning: No \author given.
 
 {/usr/local/texlive/2025basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 180.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 180.
-
-
-
 [2]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 241.
+(hyperref)                removing `math shift' on input line 186.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 241.
+(hyperref)                removing `math shift' on input line 186.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 247.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 247.
 
 
 
@@ -617,15 +616,15 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 [7]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 590.
+(hyperref)                removing `math shift' on input line 616.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `superscript' on input line 590.
+(hyperref)                removing `superscript' on input line 616.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 590.
+(hyperref)                removing `math shift' on input line 616.
 
 
 
@@ -639,26 +638,28 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 [12]
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1005.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1005.
-
-
-
 [13]
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 1039.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 1039.
 
 
 
 [14]
 
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
 [15]
 
-[16] (./tool_paper.aux)
+[16]
+
+[17] (./tool_paper.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -667,9 +668,9 @@ Package rerunfilecheck Info: File `tool_paper.out' has not changed.
 (rerunfilecheck)             Checksum: F0D90A37196678948B13DB680F265FAA;5102.
  ) 
 Here is how much of TeX's memory you used:
- 14289 strings out of 474662
- 226525 string characters out of 5751110
- 648435 words of memory out of 5000000
+ 14290 strings out of 474662
+ 226521 string characters out of 5751110
+ 648418 words of memory out of 5000000
  37022 multiletter control sequences out of 15000+600000
  573217 words of font info for 91 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
@@ -698,10 +699,10 @@ fb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmti
 10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts/cm/
 cmtt10.pfb></usr/local/texlive/2025basic/texmf-dist/fonts/type1/public/amsfonts
 /symbols/msbm10.pfb>
-Output written on tool_paper.pdf (16 pages, 325499 bytes).
+Output written on tool_paper.pdf (17 pages, 329281 bytes).
 PDF statistics:
- 457 PDF objects out of 1000 (max. 8388607)
- 391 compressed objects within 4 object streams
- 121 named destinations out of 1000 (max. 500000)
+ 461 PDF objects out of 1000 (max. 8388607)
+ 394 compressed objects within 4 object streams
+ 122 named destinations out of 1000 (max. 500000)
  225 words of extra memory for PDF output out of 10000 (max. 10000000)
 

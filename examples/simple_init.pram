@@ -1,0 +1,10 @@
+// Parallel initialization: each processor writes its ID to an array.
+// This is the simplest possible PRAM algorithm — a single parallel_for.
+algorithm parallel_init(n: i64) model EREW {
+    shared A: i64[n];
+    processors = n;
+
+    parallel_for p in 0..n {
+        shared_write(A, pid, pid);
+    }
+}

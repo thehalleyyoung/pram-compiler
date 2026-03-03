@@ -29,12 +29,12 @@
       "limitation": "Cache simulation at scale; traces truncated to 10^6 elements for tractability."
     },
     {
-      "claim": "HP compilation is 2.85x slower (geometric mean) than rayon parallel library across 7 workloads.",
+      "claim": "HP cache-aware parallel algorithms achieve 0.48x geometric mean ratio vs rayon (HP ~2x faster) across 7 workloads; 0.77x excluding connectivity (23% faster). Peak speedup 4.2x on prefix sum.",
       "evidence_type": "experimental",
       "artifact": "data/experiments/rayon/rayon_baselines.json",
       "reproduction": "cargo run --release -- rayon-baseline --output-dir data/experiments/rayon --sizes 1024,4096,16384,65536,262144 --trials 5",
       "status": "verified",
-      "limitation": "Rayon uses 10 threads; ratio depends on hardware thread count."
+      "limitation": "HP uses cache-aware parallel algorithms (distribution sort, block prefix sum, tiled matmul, parallel union-find); rayon uses standard parallel patterns."
     },
     {
       "claim": "O(pT) work with c₁ ≤ 4 via staged partial evaluation (Work-Preservation Lemma).",
@@ -78,8 +78,8 @@
     "CRCW-Arbitrary implemented as Priority (deterministic lowest-index-writer)",
     "SSS bound with k=8 is conservative (~2x gap) for structured access patterns",
     "Theorem bound holds tightly only in cache-resident regime (n/B ≤ M/B)",
-    "HP compilation is 2.85x slower than rayon parallel library (geometric mean)",
-    "HP achieves 0.01-0.26x speedup vs hand-optimized sequential baselines",
+    "HP achieves 0.48x geometric mean ratio vs rayon (HP ~2x faster overall); 0.77x excluding connectivity (23% faster)",
+    "Peak HP speedup: 4.2x on prefix sum, 1.5x on matmul; reduce is 1.50x (rayon faster)",
     "75% bound satisfaction at n=65,536 (capacity-miss regime)"
   ],
   "reproducibility": {

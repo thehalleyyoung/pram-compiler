@@ -1,0 +1,40 @@
+// Parallel prefix sum (inclusive scan) using the Blelloch up-sweep / down-sweep.
+// Demonstrates sequential loops wrapping parallel_for blocks, barrier semantics,
+// and shared memory reads/writes with computed indices.
+algorithm parallel_prefix_sum(n: i64) model EREW {
+    shared A: i64[n];
+    shared B: i64[n];
+    processors = n;
+
+    // Copy input to workspace
+    parallel_for p in 0..n {
+        let val: i64 = shared_read(A, pid);
+        shared_write(B, pid, val);
+    }
+
+    // Up-sweep: for each level d, processor at index 2^(d+1)-1 sums children
+    for d in 0..20 {
+        parallel_for p in 0..n {
+            let stride: i64 = 2 * (d + 1);
+            if pid % stride == stride - 1 {
+                let left: i64 = shared_read(B, pid - d - 1);
+                let right: i64 = shared_read(B, pid);
+                shared_write(B, pid, left + right);
+            }
+        }
+    }
+
+    // Down-sweep: propagate partial sums to even positions
+    for d in 0..20 {
+        parallel_for p in 0..n {
+            let stride: i64 = 2 * (20 - d);
+            if pid % stride == stride - 1 {
+                if pid + stride / 2 < n {
+                    let parent: i64 = shared_read(B, pid);
+                    let child: i64 = shared_read(B, pid + stride / 2);
+                    shared_write(B, pid + stride / 2, child + parent);
+                }
+            }
+        }
+    }
+}
